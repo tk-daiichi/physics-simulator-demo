@@ -1,9 +1,11 @@
 <script setup lang="ts">
   import NumIngicator from './components/NumIngicator.vue'
+  import LinearAcceleration from './components/LinearAcceleration.vue'
 </script>
 
 <template>
-  <NumIngicator></NumIngicator>
+  <!-- <NumIngicator></NumIngicator> -->
+  <LinearAcceleration></LinearAcceleration>
 </template>
 
 <style scoped>
