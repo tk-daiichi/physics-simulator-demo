@@ -1,78 +1,154 @@
 <template>
-    <h1>一次関数のグラフ</h1>
+    <h1>y=ax+bのグラフ</h1>
     <p class="input">
-        <label id="vel">初速：</label>
-        <input 
-            for="vel" 
-            v-model="velocity" 
-            type="number" 
-            @keydown.enter="linearFunc()">
-        <br>
-        <label id="acc">加速度：</label>
-        <input 
-            for="acc"
-            v-model="acceleration" 
-            type="number" 
-            @keydown.enter="linearFunc()">
+        <div>
+            <label id="initPos">a = </label>
+            <input
+                for="initPos" 
+                v-model="initPosition" 
+                type="number" 
+                @keydown.enter="linearFunc()"
+                @change="linearFunc"
+                >
+            </div>
+            <div>
+                <label id="vel">b = </label>
+                <input 
+                for="vel"
+                v-model="velocity" 
+                type="number" 
+                @keydown.enter="linearFunc()"
+                @change="linearFunc"
+            >
+        </div>
     </p>
     <p class="buttns">
         <button @click="linearFunc()">描画</button>
         <button @click="clearGraph()">消去</button>
-        グラフの式：y={{ accPara }}x{{ velPara }}
     </p>
+    <p id="graphEq">
+        グラフの式：y={{ velPara }}x{{ initPosPara }}
+    </p>
+    <div width="200">
+        mouseEventの状態：{{ mouseEventText }}
+    </div>
+    <div width="200">
+        mouseDownPosition：{{ mouseDownPosition }}
+    </div>
 
     <br>
-    <canvas id="ca" ref="caRef" :width=scaleX :height=scaleY ></canvas>
+    <canvas 
+        id="ca" ref="caRef" 
+        :width=scaleX :height=scaleY 
+        @mousedown="mousedown"
+        @mouseup="mouseup"
+        @mousemove="scrollGraph"
+    >
+    </canvas>
 </template>
 
 <script setup lang="ts">
-    import { ref, onMounted, computed } from 'vue';
+    import { ref, onMounted, computed, reactive } from 'vue';
 
     const caRef = ref<HTMLCanvasElement>()
+    /**
+     * canvasに描画操作をするにはcaRefの2Dコンテクストctxを取得する必要がある
+     * ctxはマウント後に取得しないとundefinedになる
+     * 呼び出す関数すべてにctxの宣言文を書く必要があり、冗長になる
+     */
 
-    //座標系に使う原点座標
-    const xOrigin = 500;
-    const yOrigin = 500;
+    let Origin = {x: 500, y: 500};
 
-    //座標平面のスケール
     const scaleX = 1000;
-    const scaleY = 1000;
+    const scaleY = 600;
 
-    //座標系の目盛り幅
-    const intervalX = 100;
-    const intervalY = 100;
+    const interval = 100;
 
-    //原点から座標平面までの距離
-    const xedge = (scaleX-xOrigin)/intervalX
-    const yedge = (scaleY-yOrigin)/intervalY
+    const linewidth = 4 / interval;
 
-    const linewidth = 4 / intervalX;
+    const initPosition = ref<number>(1);
+    const velocity = ref<number>(-2);
 
-
-    const velocity = ref<number>();
-    const acceleration = ref<number>();
-
-    const accPara = computed(() => {
-        return acceleration.value == 1 ? "" : acceleration.value
+    
+    const initPosPara = computed(() => {
+        const sign = (initPosition.value > 0) ? "+" : "-"
+        return !!(initPosition.value) ?  sign + Math.abs(initPosition.value) : ""
     })
+
     const velPara = computed(() => {
-        return !!(velocity.value) == false ? "" : "+"+velocity.value
+        const sign = (velocity.value >= 0) ? "" : "-"
+        if( velocity.value !== 0){
+            return Math.abs(velocity.value) == 1 ? sign : sign + Math.abs(velocity.value)
+        } else {
+            return "";
+        }
     })
 
     onMounted(() => {
-        coordinateAxis()
         coordinate()
         linearFunc()
-    })
+    });
 
-    function clearGraph() {
+
+    const mouseEventText = ref<string>("")
+    const mouseDownPosition = reactive({x: 0, y: 0});
+    const mousedown = ((ev: MouseEvent) => {
+        mouseDownPosition.x = ev.clientX;
+        mouseDownPosition.y = ev.clientY;
+        mouseEventText.value = "mousedown"
+    })
+    const mouseup   = () => mouseEventText.value = "mouseup"
+
+    /**
+     * mouseDownPositionとmousemoveイベントの位置を取得する
+     * それぞれcanvas上の座標に変換する
+     * それらのx,y座標の変化量をそれぞれ求める
+     * yの変化量は符号を反転させる
+     * Origin.x, Origin.yの現在の量にそれらを足す
+     * 
+     * いつも一方向に動かすわけじゃないしだめ
+     * そもそも、変化量がその都度加算されていくから
+     * すごい勢いで彼方にスクロールされた
+     */
+
+    function scrollGraph(ev: MouseEvent) {
         const ca = caRef.value?.getContext("2d")
-        if(ca) {
-            ca.clearRect(0,0,scaleX,scaleY)
+        const offsetX = caRef.value?.getBoundingClientRect().left;
+        const offsetY = caRef.value?.getBoundingClientRect().top;
+
+        const canvasX = offsetX ? ev.clientX - offsetX : Origin.x;
+        const canvasY = offsetY ? ev.clientY - offsetY : Origin.y;
+        
+        // const canvasBaseX = offsetX ? mouseDownPosition.x - offsetX : 0;
+        // const canvasBaseY = offsetY ? mouseDownPosition.y - offsetY : 0;
+
+        // const dx = canvasBaseX - canvasX;
+        // const dy = canvasBaseY - canvasY;
+
+        // if (mouseEventText.value == "mousedown"){
+        //     ca?.clearRect(0, 0, scaleX, scaleY)
+
+        //     Origin.x -= dx;
+        //     Origin.y += dy;
+
+        //     coordinateAxis();
+        //     coordinate()
+        //     linearFunc();
+        // }
+
+        if (mouseEventText.value == "mousedown"){
+            ca?.clearRect(0, 0, scaleX, scaleY)
+
+            Origin.x = canvasX;
+            Origin.y = canvasY;
+
             coordinateAxis();
-            coordinate();
+            coordinate()
+            linearFunc();
         }
     }
+
+
       
     function coordinateAxis(){
         const ca = caRef.value?.getContext("2d")
@@ -80,88 +156,118 @@
             ca.save();
             ca.lineWidth = 4;
             ca.beginPath()
-            ca.moveTo(xOrigin, 0)
-            ca.lineTo(xOrigin, scaleY)
-            ca.moveTo(0,        yOrigin)
-            ca.lineTo(scaleX,   yOrigin)
+            ca.moveTo(Origin.x, 0)
+            ca.lineTo(Origin.x, scaleY)
+            ca.moveTo(0, Origin.y)
+            ca.lineTo(scaleX, Origin.y)
             ca.stroke()
+
             ca.font = "30px serif"
-            ca.fillText("O", xOrigin-40, yOrigin+40)
+            ca.fillText("O", Origin.x - 40, Origin.y + 40)
+            ca.font = "40px serif"
+            ca.textAlign = "start"
+            ca.textBaseline = "top"
+            ca.fillText("y", Origin.x + 10, 0)
+            ca.textAlign = "right"
+            ca.textBaseline = "bottom"
+            ca.fillText("x", scaleX - 10, Origin.y)
+
             ca.restore();
         }
     }
 
     function coordinate(){
+        coordinateAxis();
         const ca = caRef.value?.getContext("2d")
         if(ca) {
-            ca.save()
-            ca.lineWidth = 1
-            for(let i=0; i < xedge*2; i++){
-                ca.beginPath()
-                ca.moveTo(intervalX + i*intervalX, 0)
-                ca.lineTo(intervalX + i*intervalX, scaleY)
+            ca.save();
+            ca.fillStyle = "rgba(100, 100, 100, 0.4)"
+            ca.fillRect(0, 0, scaleX, scaleY)
+            ca.restore();
 
-                ca.moveTo(0,        intervalY + i*intervalY)
-                ca.lineTo(scaleX,   intervalY + i*intervalY)
+            ca.save()
+            
+            ca.lineWidth = 1
+            ca.font = "20px serif"
+            ca.textBaseline = "top"
+
+            for(let i = - (scaleX / interval); i <= scaleX / interval; i++){
+                ca.beginPath()
+                ca.moveTo(Origin.x + interval + i*interval, 0)
+                ca.lineTo(Origin.x + interval + i*interval, scaleY)
+                ca.moveTo(0,      Origin.y + interval + i*interval)
+                ca.lineTo(scaleX, Origin.y + interval + i*interval)
                 ca.stroke()
-                const coordinateXIndex = i-xOrigin/intervalX+1
-                const coordinateYIndex = i-yOrigin/intervalY+1
+                const coordinateXIndex = Math.floor(i + 1)
+                const coordinateYIndex = Math.floor(i + 1)
+
                 if(coordinateXIndex !== 0){
-                    ca.font = "20px serif"
                     ca.textAlign = "right"
-                    ca.textBaseline = "top"
-                    ca.fillText(`${coordinateXIndex}`, intervalX + i*intervalX - 5, yOrigin)
+                    ca.fillText(
+                        `${coordinateXIndex}`, 
+                        Origin.x + interval + i*interval - 5, 
+                        Origin.y)
                 }
                 if(coordinateYIndex !== 0){
-                    ca.font = "20px serif"
                     ca.textAlign = "left"
-                    ca.textBaseline = "top"
-                    ca.fillText(`${-coordinateYIndex}`, xOrigin + 5, intervalY + i*intervalY + 5)
+                    ca.fillText(
+                        `${-coordinateYIndex}`, 
+                        Origin.x + 5, 
+                        Origin.y + interval + i*interval + 5)
                 }
             }
             ca.restore()
         }
     }
 
+
+    function clearGraph() {
+        const ca = caRef.value?.getContext("2d")
+        if(ca) {
+            ca.clearRect(0,0,scaleX,scaleY)
+            coordinate();
+        }
+    }
+
     function linearFunc(){
         const ca = caRef.value?.getContext("2d")
+        const initPos = initPosition.value
         const vel = velocity.value
-        const acc = acceleration.value
+
+        clearGraph()
+
         if(ca){
             ca.save();
             ca.strokeStyle = "red";
-            ca.translate(xOrigin, yOrigin)
-            ca.scale(1,-1);
-            ca.scale(intervalX, intervalY)
             ca.lineWidth = linewidth;
-            if((vel || vel == 0 ) && acc){
-                ca.beginPath();
-                ca.moveTo((-yedge-vel)/acc, -yedge)
-                for (let i=1; -yedge+i*Math.abs(acc) <= yedge+Math.abs(acc); i++){
-                    console.log(i)
-                    ca.lineTo((-yedge-vel)/acc + i*Math.sign(acc), -yedge + i*Math.abs(acc))
-                }
-                ca.stroke();
+            ca.translate(Origin.x, Origin.y)
+            ca.scale(interval, -interval)
+
+            const graphEdge = {
+                x: (-(scaleY - Origin.y) / interval - initPos) / vel,
+                y: -(scaleY - Origin.y) / interval
+            };
+            
+            ca.beginPath();
+            ca.moveTo(graphEdge.x, graphEdge.y)
+            for (let i = 0; i <= scaleY / interval; i++){
+                ca.lineTo(graphEdge.x + i * Math.sign(vel), graphEdge.y + i*Math.abs(vel))
             }
+            ca.stroke();
             ca.restore();
         }
-    }
-    
-    function drawArc(x:number,y:number,r:number){
-        const ca = caRef.value?.getContext("2d");
-    
-        if (ca){
-            ca.beginPath()
-            ca.strokeStyle = "red"
-            ca.arc(x, y, r, Math.PI*0, Math.PI*2, false);
-            ca.closePath()
-            ca.stroke();
-        }
-    }
+    }   
 </script>
 
 <style>
     .input, .buttns { 
         text-align: left;
+    }
+    #ca {
+        border: 2px solid black;
+    }
+    #graphEq {
+        text-align: left;
+        font-size: 30px;
     }
 </style>
