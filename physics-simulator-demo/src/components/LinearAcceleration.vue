@@ -1,39 +1,31 @@
 <template>
-    <h1>y=ax+bのグラフ</h1>
-    <p class="input">
-        <div>
-            <label id="initPos">a = </label>
+    <h2>y=ax+bのグラフ</h2>
+
+    <div id="graphInfos">
+        <div id="paramA">
+            <label id="initPos">a</label>
+            <button id="" @click="paramADecrease()">&lt;</button>
             <input
-                for="initPos" 
+                for="initPos" type="number" 
                 v-model="initPosition" 
-                type="number" 
                 @keydown.enter="linearFunc()"
-                @change="linearFunc"
-                >
-            </div>
-            <div>
-                <label id="vel">b = </label>
-                <input 
-                for="vel"
-                v-model="velocity" 
-                type="number" 
-                @keydown.enter="linearFunc()"
-                @change="linearFunc"
-            >
+                @change="linearFunc">
+            <button @click="paramAIncrease()">&gt;</button>
         </div>
-    </p>
-    <p class="buttns">
-        <button @click="linearFunc()">描画</button>
-        <button @click="clearGraph()">消去</button>
-    </p>
-    <p id="graphEq">
-        グラフの式：y={{ velPara }}x{{ initPosPara }}
-    </p>
-    <div width="200">
-        mouseEventの状態：{{ mouseEventText }}
-    </div>
-    <div width="200">
-        mouseDownPosition：{{ mouseDownPosition }}
+        <div id="paramB">
+            <label id="vel">b</label>
+            <button @click="paramBDecrease()">&lt;</button>
+            <input 
+                for="vel" type="number" 
+                v-model="velocity" 
+                @keydown.enter="linearFunc()"
+                @change="linearFunc">
+            <button @click="paramBIncrease()">&gt;</button>
+        </div>
+        <div id="graphEq">
+            グラフの式：y={{ velPara }}x{{ initPosPara }}
+        </div>
+        <!-- mouseEventの状態：{{ mouseEventText }} -->
     </div>
 
     <br>
@@ -84,6 +76,23 @@
         }
     })
 
+    const paramAIncrease = (() => {
+        initPosition.value += 1;
+        linearFunc();
+    })
+    const paramBIncrease = (() => {
+        velocity.value += 1;
+        linearFunc();
+    })
+    const paramADecrease = (() => {
+        initPosition.value -= 1;
+        linearFunc();
+    })
+    const paramBDecrease = (() => {
+        initPosition.value -= 1;
+        linearFunc();
+    })
+
     onMounted(() => {
         coordinate()
         linearFunc()
@@ -91,25 +100,10 @@
 
 
     const mouseEventText = ref<string>("")
-    const mouseDownPosition = reactive({x: 0, y: 0});
     const mousedown = ((ev: MouseEvent) => {
-        mouseDownPosition.x = ev.clientX;
-        mouseDownPosition.y = ev.clientY;
         mouseEventText.value = "mousedown"
     })
     const mouseup   = () => mouseEventText.value = "mouseup"
-
-    /**
-     * mouseDownPositionとmousemoveイベントの位置を取得する
-     * それぞれcanvas上の座標に変換する
-     * それらのx,y座標の変化量をそれぞれ求める
-     * yの変化量は符号を反転させる
-     * Origin.x, Origin.yの現在の量にそれらを足す
-     * 
-     * いつも一方向に動かすわけじゃないしだめ
-     * そもそも、変化量がその都度加算されていくから
-     * すごい勢いで彼方にスクロールされた
-     */
 
     function scrollGraph(ev: MouseEvent) {
         const ca = caRef.value?.getContext("2d")
@@ -241,14 +235,34 @@
 </script>
 
 <style>
-    .input, .buttns { 
+    #graphInfos {
         text-align: left;
+        font-size: 10px;
     }
+    #paramA {
+        margin-bottom: 10px;
+    }
+    label {
+        margin-left: 10px;
+        margin-right: 10px;
+        font-size: 20px;
+    }
+    button {
+        margin-right: 10px;
+        margin-left: 10px;
+        border: 1px solid black;
+        font-weight: bold;
+        /* font-size: 10px; */
+    }
+    input, button {
+        height: 30px;
+    }
+    #graphEq {
+        font-size: 30px;
+    }
+
     #ca {
         border: 2px solid black;
     }
-    #graphEq {
-        text-align: left;
-        font-size: 30px;
-    }
+
 </style>
