@@ -113,37 +113,18 @@
 
     function scrollGraph(ev: MouseEvent) {
         const ca = caRef.value?.getContext("2d")
-        const offsetX = caRef.value?.getBoundingClientRect().left;
-        const offsetY = caRef.value?.getBoundingClientRect().top;
 
-        const canvasX = offsetX ? ev.clientX - offsetX : Origin.x;
-        const canvasY = offsetY ? ev.clientY - offsetY : Origin.y;
-        
-        // const canvasBaseX = offsetX ? mouseDownPosition.x - offsetX : 0;
-        // const canvasBaseY = offsetY ? mouseDownPosition.y - offsetY : 0;
+        const dx = ev.movementX;
+        const dy = ev.movementY;
 
-        // const dx = canvasBaseX - canvasX;
-        // const dy = canvasBaseY - canvasY;
-
-        // if (mouseEventText.value == "mousedown"){
-        //     ca?.clearRect(0, 0, scaleX, scaleY)
-
-        //     Origin.x -= dx;
-        //     Origin.y += dy;
-
-        //     coordinateAxis();
-        //     coordinate()
-        //     linearFunc();
-        // }
-
-        if (mouseEventText.value == "mousedown"){
+        if (mouseEventText.value == "mousedown" ){
             ca?.clearRect(0, 0, scaleX, scaleY)
 
-            Origin.x = canvasX;
-            Origin.y = canvasY;
+            Origin.x += dx;
+            Origin.y += dy;
 
             coordinateAxis();
-            coordinate()
+            coordinate();
             linearFunc();
         }
     }
