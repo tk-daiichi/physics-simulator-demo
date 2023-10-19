@@ -25,7 +25,7 @@
         <div id="graphEq">
             グラフの式：y={{ velPara }}x{{ initPosPara }}
         </div>
-        <!-- mouseEventの状態：{{ mouseEventText }} -->
+        <!-- mouseEventの状態：{{ mouseEventStatus }} -->
     </div>
 
     <br>
@@ -55,8 +55,6 @@
     const scaleY = 600;
 
     const interval = 100;
-
-    const linewidth = 4 / interval;
 
     const initPosition = ref<number>(1);
     const velocity = ref<number>(-2);
@@ -99,11 +97,11 @@
     });
 
 
-    const mouseEventText = ref<string>("")
+    const mouseEventStatus = ref<string>("")
     const mousedown = ((ev: MouseEvent) => {
-        mouseEventText.value = "mousedown"
+        mouseEventStatus.value = "mousedown"
     })
-    const mouseup   = () => mouseEventText.value = "mouseup"
+    const mouseup   = () => mouseEventStatus.value = "mouseup"
 
     function scrollGraph(ev: MouseEvent) {
         const ca = caRef.value?.getContext("2d")
@@ -111,7 +109,7 @@
         const dx = ev.movementX;
         const dy = ev.movementY;
 
-        if (mouseEventText.value == "mousedown" ){
+        if (mouseEventStatus.value == "mousedown" ){
             ca?.clearRect(0, 0, scaleX, scaleY)
 
             Origin.x += dx;
@@ -129,7 +127,7 @@
         const ca = caRef.value?.getContext("2d")
         if(ca) {
             ca.save();
-            ca.lineWidth = 4;
+            ca.lineWidth = 2.5;
             ca.beginPath()
             ca.moveTo(Origin.x, 0)
             ca.lineTo(Origin.x, scaleY)
@@ -163,32 +161,55 @@
             ca.save()
             
             ca.lineWidth = 1
-            ca.font = "20px serif"
-            ca.textBaseline = "top"
 
-            for(let i = - (scaleX / interval); i <= scaleX / interval; i++){
+            for(let i = 0; i <= scaleX / interval; i++){
+                console.log(i)
                 ca.beginPath()
-                ca.moveTo(Origin.x + interval + i*interval, 0)
-                ca.lineTo(Origin.x + interval + i*interval, scaleY)
-                ca.moveTo(0,      Origin.y + interval + i*interval)
-                ca.lineTo(scaleX, Origin.y + interval + i*interval)
+                ca.setLineDash([10,10])
+                ca.strokeStyle = "rgba(0,0,0,0.3)"
+                ca.moveTo(Origin.x % interval + i * interval, 0)
+                ca.lineTo(Origin.x % interval + i * interval, scaleY)
+                ca.moveTo(0,      Origin.y % interval + i * interval)
+                ca.lineTo(scaleX, Origin.y % interval + i * interval)
                 ca.stroke()
-                const coordinateXIndex = Math.floor(i + 1)
-                const coordinateYIndex = Math.floor(i + 1)
 
+
+                const coordinateXIndex = i - Math.trunc(Origin.x / interval);
+                const coordinateYIndex = i - Math.trunc(Origin.y / interval);
+                
+                ca.save()
+                ca.beginPath()
+                ca.strokeStyle = "rgba(0,0,0,1)"
+                ca.lineWidth = 4
+                ca.setLineDash([])
+                if (coordinateXIndex != 0){
+                    ca.moveTo(Origin.x % interval + i * interval, Origin.y - 10);
+                    ca.lineTo(Origin.x % interval + i * interval, Origin.y + 10);
+                }
+                if (coordinateYIndex != 0) {
+                    ca.moveTo(Origin.x - 10, Origin.y % interval + i * interval);
+                    ca.lineTo(Origin.x + 10, Origin.y % interval + i * interval);
+                }
+                ca.stroke()
+                ca.restore()
+
+                ca.font = "25px serif"
+                
                 if(coordinateXIndex !== 0){
-                    ca.textAlign = "right"
+                    ca.textBaseline = "top"
+                    ca.textAlign = "center"
                     ca.fillText(
                         `${coordinateXIndex}`, 
-                        Origin.x + interval + i*interval - 5, 
-                        Origin.y)
+                        Origin.x % interval + i*interval, 
+                        Origin.y + 10)
                 }
                 if(coordinateYIndex !== 0){
-                    ca.textAlign = "left"
+                    ca.textBaseline = "middle"
+                    ca.textAlign = "right"
                     ca.fillText(
                         `${-coordinateYIndex}`, 
-                        Origin.x + 5, 
-                        Origin.y + interval + i*interval + 5)
+                        Origin.x - 10, 
+                        Origin.y % interval + i*interval)
                 }
             }
             ca.restore()
@@ -214,7 +235,7 @@
         if(ca){
             ca.save();
             ca.strokeStyle = "red";
-            ca.lineWidth = linewidth;
+            ca.lineWidth = 4 / interval;
             ca.translate(Origin.x, Origin.y)
             ca.scale(interval, -interval)
 
