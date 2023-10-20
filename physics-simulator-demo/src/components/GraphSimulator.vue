@@ -8,20 +8,20 @@
                 <label id="param">a</label>
                 <button id="" @click="paramADecrease()">&lt;</button>
                 <input
-                for="param" type="number" 
-                v-model="graph1a" 
-                @keydown.enter="drawGraph"
-                @change="drawGraph">
+                    for="param" type="number" 
+                    v-model="graph1a" 
+                    @keydown.enter="drawGraph"
+                    @change="drawGraph">
                 <button @click="paramAIncrease()">&gt;</button>
             </div>
             <div id="paramB">
                 <label id="param">b</label>
                 <button @click="paramBDecrease()">&lt;</button>
                 <input 
-                for="param" type="number" 
-                v-model="graph1b" 
-                @keydown.enter="drawGraph"
-                @change="drawGraph">
+                    for="param" type="number" 
+                    v-model="graph1b" 
+                    @keydown.enter="drawGraph"
+                    @change="drawGraph">
                 <button @click="paramBIncrease()">&gt;</button>
             </div>
             <div id="graphEq">

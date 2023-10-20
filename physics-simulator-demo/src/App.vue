@@ -1,11 +1,11 @@
 <script setup lang="ts">
   import NumIngicator from './components/NumIngicator.vue'
-  import LinearAcceleration from './components/LinearAcceleration.vue'
+  import GraphSimulator from './components/GraphSimulator.vue'
 </script>
 
 <template>
   <!-- <NumIngicator></NumIngicator> -->
-  <LinearAcceleration></LinearAcceleration>
+  <GraphSimulator></GraphSimulator>
 </template>
 
 <style scoped>
