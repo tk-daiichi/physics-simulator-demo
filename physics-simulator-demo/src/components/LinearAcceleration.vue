@@ -1,40 +1,55 @@
 <template>
-    <h2>y=ax+bのグラフ</h2>
+    <div id="graphInfo">
+        <div id="graph1">
+            <div id="paramA">
+                <label id="initPos">a</label>
+                <button id="" @click="paramADecrease()">&lt;</button>
+                <input
+                    for="initPos" type="number" 
+                    v-model="graph1a" 
+                    @keydown.enter="drawGraph"
+                    @change="drawGraph">
+                <button @click="paramAIncrease()">&gt;</button>
+            </div>
+            <div id="paramB">
+                <label id="vel">b</label>
+                <button @click="paramBDecrease()">&lt;</button>
+                <input 
+                    for="vel" type="number" 
+                    v-model="graph1b" 
+                    @keydown.enter="drawGraph"
+                    @change="drawGraph">
+                <button @click="paramBIncrease()">&gt;</button>
+            </div>
+            <div id="graphEq">
+                グラフの式：y={{ graph1aParam }}x{{ graph1bParam }}
+            </div>
+        </div>
 
-    <div id="graphInfos">
-        <div id="paramA">
-            <label id="initPos">a</label>
-            <button id="" @click="paramADecrease()">&lt;</button>
-            <input
-                for="initPos" type="number" 
-                v-model="initPosition" 
-                @keydown.enter="linearFunc()"
-                @change="linearFunc">
-            <button @click="paramAIncrease()">&gt;</button>
+        <div id="graph2">
+            <div id="paramA">
+                <label id="graph2Param"></label>
+                <button @click="graph2Decrease()">&lt;</button>
+                <input
+                    for="graph2Param" type="number" 
+                    v-model="graph2Param" 
+                    @keydown.enter="drawGraph"
+                    @change="drawGraph">
+                <button @click="graph2Increase()">&gt;</button>
+            </div>
+            <div id="graphEq">
+                グラフの式：y={{ graph2Param }}x<sup>2</sup>
+            </div>
         </div>
-        <div id="paramB">
-            <label id="vel">b</label>
-            <button @click="paramBDecrease()">&lt;</button>
+        <div>
+            <label id="intervalSlider">縮尺</label>
             <input 
-                for="vel" type="number" 
-                v-model="velocity" 
-                @keydown.enter="linearFunc()"
-                @change="linearFunc">
-            <button @click="paramBIncrease()">&gt;</button>
-        </div>
-        <div id="scaleX">
-            <label id="scaleX">縮尺</label>
-            <input 
-                for="scaleX" type="range"
+                for="intervalSlider" type="range"
                 min="50" max="200"
                 v-model="interval"
-                @input="linearFunc"
-                >
+                @input="scaleUpdate()"
+            >
         </div>
-        <div id="graphEq">
-            グラフの式：y={{ velPara }}x{{ initPosPara }}
-        </div>
-        <!-- mouseEventの状態：{{ mouseEventStatus }} -->
     </div>
 
     <br>
@@ -58,48 +73,91 @@
     const scaleX = 1000;
     const scaleY = 600;
 
-    const interval = ref(100);
+    const interval = ref<number>(100);
 
-    const initPosition = ref<number>(1);
-    const velocity = ref<number>(-2);
+    const graph1a = ref<number>(1);
+    const graph1b = ref<number>(-2);
+    const graph2Param = ref<number>(2)
 
-    
-    const initPosPara = computed(() => {
-        const sign = (initPosition.value > 0) ? "+" : "-"
-        return !!(initPosition.value) ?  sign + Math.abs(initPosition.value) : ""
-    })
+    onMounted(() => {
+        coordinate();
+        drawGraph();
+    });
 
-    const velPara = computed(() => {
-        const sign = (velocity.value >= 0) ? "" : "-"
-        if( velocity.value !== 0){
-            return Math.abs(velocity.value) == 1 ? sign : sign + Math.abs(velocity.value)
+    function drawGraph() {
+        clearGraph();
+        graph1Draw();
+        graph2Draw();
+    }
+
+    const graph1aParam = computed(() => {
+        const sign = (graph1b.value >= 0) ? "" : "-"
+        if( graph1b.value !== 0){
+            return Math.abs(graph1b.value) == 1 ? sign : sign + Math.abs(graph1b.value)
         } else {
             return "";
         }
     })
+    const graph1bParam = computed(() => {
+        const sign = (graph1a.value > 0) ? "+" : "-"
+        return !!(graph1a.value) ?  sign + Math.abs(graph1a.value) : ""
+    })
 
+
+    const scaleUpdate = (() => {
+        drawGraph()
+    })
     const paramAIncrease = (() => {
-        initPosition.value += 1;
-        linearFunc();
+        graph1a.value += 1;
+        drawGraph()
     })
     const paramADecrease = (() => {
-        initPosition.value -= 1;
-        linearFunc();
+        graph1a.value -= 1;
+        drawGraph()
     })
     const paramBIncrease = (() => {
-        velocity.value += 1;
-        linearFunc();
+        graph1b.value += 1;
+        drawGraph()
     })
     const paramBDecrease = (() => {
-        velocity.value -= 1;
-        linearFunc();
+        graph1b.value -= 1;
+        drawGraph()
+    })
+    const graph2Increase = (() => {
+        graph2Param.value += 1;
+        drawGraph()
+    })
+    const graph2Decrease = (() => {
+        graph2Param.value -= 1;
+        drawGraph()
     })
 
-    onMounted(() => {
-        coordinate()
-        linearFunc()
-    });
+    function graph2Draw() {
+        const ca = caRef.value?.getContext("2d")
 
+        if(ca){
+            ca.save();
+            ca.strokeStyle = "red";
+            ca.lineWidth = 4 / interval.value;
+
+            ca.translate(Origin.x, Origin.y)
+            ca.scale(interval.value, -interval.value)
+            
+            const startX = Math.sqrt(Math.abs((-Origin.y+scaleY)/graph2Param.value))
+
+            const positionY = ((i:number) => {
+               return Math.abs(graph2Param.value*Math.pow(i+0.1, 2));
+            })
+
+            ca.beginPath();
+            for(let i = -Math.abs(startX); positionY(i) < Math.abs(scaleY - Origin.y); i+=0.1){
+                ca.moveTo(i,     graph2Param.value*Math.pow(i, 2))
+                ca.lineTo(i+0.1, graph2Param.value*Math.pow(i+0.1, 2))  
+            }
+            ca.stroke();
+            ca.restore();
+        }
+    }   
 
     const mouseEventStatus = ref<string>("")
     const mousedown = ((ev: MouseEvent) => {
@@ -121,7 +179,8 @@
 
             coordinateAxis();
             coordinate();
-            linearFunc();
+            graph1Draw();
+            graph2Draw();
         }
     }
 
@@ -228,12 +287,10 @@
         }
     }
 
-    function linearFunc(){
+    function graph1Draw(){
         const ca = caRef.value?.getContext("2d")
-        const initPos = initPosition.value
-        const vel = velocity.value
-
-        clearGraph()
+        const initPos = graph1a.value
+        const vel = graph1b.value
 
         if(ca){
             ca.save();
@@ -266,7 +323,11 @@
 </script>
 
 <style>
-    #graphInfos {
+    #graphInfo {
+        display: flex;
+    }
+    #graph1 {
+        /* display: inline-flex; */
         text-align: left;
         font-size: 10px;
     }
