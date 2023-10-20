@@ -43,11 +43,6 @@
     import { ref, onMounted, computed, reactive } from 'vue';
 
     const caRef = ref<HTMLCanvasElement>()
-    /**
-     * canvasに描画操作をするにはcaRefの2Dコンテクストctxを取得する必要がある
-     * ctxはマウント後に取得しないとundefinedになる
-     * 呼び出す関数すべてにctxの宣言文を書く必要があり、冗長になる
-     */
 
     let Origin = {x: 500, y: 500};
 
@@ -78,16 +73,16 @@
         initPosition.value += 1;
         linearFunc();
     })
-    const paramBIncrease = (() => {
-        velocity.value += 1;
-        linearFunc();
-    })
     const paramADecrease = (() => {
         initPosition.value -= 1;
         linearFunc();
     })
+    const paramBIncrease = (() => {
+        velocity.value += 1;
+        linearFunc();
+    })
     const paramBDecrease = (() => {
-        initPosition.value -= 1;
+        velocity.value -= 1;
         linearFunc();
     })
 
@@ -163,7 +158,6 @@
             ca.lineWidth = 1
 
             for(let i = 0; i <= scaleX / interval; i++){
-                console.log(i)
                 ca.beginPath()
                 ca.setLineDash([10,10])
                 ca.strokeStyle = "rgba(0,0,0,0.3)"
@@ -236,19 +230,26 @@
             ca.save();
             ca.strokeStyle = "red";
             ca.lineWidth = 4 / interval;
+            
+            /**
+             * グラフの端点の座標を算出　translate, scaleでの変換後の座標であることに注意
+             * x座標はグラフの式から計算している
+             * あらかじめtranslateとscaleで変換しておくとグラフの式がそのまま使えて良い
+            */
             ca.translate(Origin.x, Origin.y)
             ca.scale(interval, -interval)
-
-            const graphEdge = {
+            const graphStart = {
                 x: (-(scaleY - Origin.y) / interval - initPos) / vel,
                 y: -(scaleY - Origin.y) / interval
             };
+            const graphEnd = {
+                x: (Origin.y / interval - initPos) / vel,
+                y: Origin.y / interval
+            };
             
             ca.beginPath();
-            ca.moveTo(graphEdge.x, graphEdge.y)
-            for (let i = 0; i <= scaleY / interval; i++){
-                ca.lineTo(graphEdge.x + i * Math.sign(vel), graphEdge.y + i*Math.abs(vel))
-            }
+            ca.moveTo(graphStart.x, graphStart.y)
+            ca.lineTo(graphEnd.x, graphEnd.y)
             ca.stroke();
             ca.restore();
         }
