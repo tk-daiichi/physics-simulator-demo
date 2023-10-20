@@ -22,6 +22,15 @@
                 @change="linearFunc">
             <button @click="paramBIncrease()">&gt;</button>
         </div>
+        <div id="scaleX">
+            <label id="scaleX">縮尺</label>
+            <input 
+                for="scaleX" type="range"
+                min="50" max="200"
+                v-model="interval"
+                @input="linearFunc"
+                >
+        </div>
         <div id="graphEq">
             グラフの式：y={{ velPara }}x{{ initPosPara }}
         </div>
@@ -49,7 +58,7 @@
     const scaleX = 1000;
     const scaleY = 600;
 
-    const interval = 100;
+    const interval = ref(100);
 
     const initPosition = ref<number>(1);
     const velocity = ref<number>(-2);
@@ -157,19 +166,19 @@
             
             ca.lineWidth = 1
 
-            for(let i = 0; i <= scaleX / interval; i++){
+            for(let i = 0; i <= scaleX / interval.value; i++){
                 ca.beginPath()
                 ca.setLineDash([10,10])
                 ca.strokeStyle = "rgba(0,0,0,0.3)"
-                ca.moveTo(Origin.x % interval + i * interval, 0)
-                ca.lineTo(Origin.x % interval + i * interval, scaleY)
-                ca.moveTo(0,      Origin.y % interval + i * interval)
-                ca.lineTo(scaleX, Origin.y % interval + i * interval)
+                ca.moveTo(Origin.x % interval.value + i * interval.value, 0)
+                ca.lineTo(Origin.x % interval.value + i * interval.value, scaleY)
+                ca.moveTo(0,      Origin.y % interval.value + i * interval.value)
+                ca.lineTo(scaleX, Origin.y % interval.value + i * interval.value)
                 ca.stroke()
 
 
-                const coordinateXIndex = i - Math.trunc(Origin.x / interval);
-                const coordinateYIndex = i - Math.trunc(Origin.y / interval);
+                const coordinateXIndex = i - Math.trunc(Origin.x / interval.value);
+                const coordinateYIndex = i - Math.trunc(Origin.y / interval.value);
                 
                 ca.save()
                 ca.beginPath()
@@ -177,12 +186,12 @@
                 ca.lineWidth = 4
                 ca.setLineDash([])
                 if (coordinateXIndex != 0){
-                    ca.moveTo(Origin.x % interval + i * interval, Origin.y - 10);
-                    ca.lineTo(Origin.x % interval + i * interval, Origin.y + 10);
+                    ca.moveTo(Origin.x % interval.value + i * interval.value, Origin.y - 10);
+                    ca.lineTo(Origin.x % interval.value + i * interval.value, Origin.y + 10);
                 }
                 if (coordinateYIndex != 0) {
-                    ca.moveTo(Origin.x - 10, Origin.y % interval + i * interval);
-                    ca.lineTo(Origin.x + 10, Origin.y % interval + i * interval);
+                    ca.moveTo(Origin.x - 10, Origin.y % interval.value + i * interval.value);
+                    ca.lineTo(Origin.x + 10, Origin.y % interval.value + i * interval.value);
                 }
                 ca.stroke()
                 ca.restore()
@@ -194,7 +203,7 @@
                     ca.textAlign = "center"
                     ca.fillText(
                         `${coordinateXIndex}`, 
-                        Origin.x % interval + i*interval, 
+                        Origin.x % interval.value + i*interval.value, 
                         Origin.y + 10)
                 }
                 if(coordinateYIndex !== 0){
@@ -203,7 +212,7 @@
                     ca.fillText(
                         `${-coordinateYIndex}`, 
                         Origin.x - 10, 
-                        Origin.y % interval + i*interval)
+                        Origin.y % interval.value + i*interval.value)
                 }
             }
             ca.restore()
@@ -229,7 +238,7 @@
         if(ca){
             ca.save();
             ca.strokeStyle = "red";
-            ca.lineWidth = 4 / interval;
+            ca.lineWidth = 4 / interval.value;
             
             /**
              * グラフの端点の座標を算出　translate, scaleでの変換後の座標であることに注意
@@ -237,14 +246,14 @@
              * あらかじめtranslateとscaleで変換しておくとグラフの式がそのまま使えて良い
             */
             ca.translate(Origin.x, Origin.y)
-            ca.scale(interval, -interval)
+            ca.scale(interval.value, -interval.value)
             const graphStart = {
-                x: (-(scaleY - Origin.y) / interval - initPos) / vel,
-                y: -(scaleY - Origin.y) / interval
+                x: (-(scaleY - Origin.y) / interval.value - initPos) / vel,
+                y: -(scaleY - Origin.y) / interval.value
             };
             const graphEnd = {
-                x: (Origin.y / interval - initPos) / vel,
-                y: Origin.y / interval
+                x: (Origin.y / interval.value - initPos) / vel,
+                y: Origin.y / interval.value
             };
             
             ca.beginPath();
