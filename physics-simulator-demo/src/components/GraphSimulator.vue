@@ -152,8 +152,8 @@
     }
     function graph1Draw(){
         const ca = caRef.value?.getContext("2d")
-        const initPos = graph1a.value
-        const vel = graph1b.value
+        const paramA = graph1a.value
+        const paramB = graph1b.value
 
         if(ca){
             ca.save();
@@ -168,11 +168,11 @@
             ca.translate(Origin.x, Origin.y)
             ca.scale(interval.value, -interval.value)
             const graphStart = {
-                x: (-(scaleY - Origin.y) / interval.value - initPos) / vel,
+                x: (-(scaleY - Origin.y) / interval.value - paramA) / paramB,
                 y: -(scaleY - Origin.y) / interval.value
             };
             const graphEnd = {
-                x: (Origin.y / interval.value - initPos) / vel,
+                x: (Origin.y / interval.value - paramA) / paramB,
                 y: Origin.y / interval.value
             };
             
