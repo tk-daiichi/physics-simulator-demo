@@ -1,4 +1,4 @@
-import { coordinate, Origin} from './CoordinateDrawer'
+import { coordinate, Origin } from './CoordinateDrawer'
 
 export function clearGraph(
     ctx: CanvasRenderingContext2D,
@@ -61,13 +61,14 @@ export function graph2Draw(
     ctx.scale(interval, -interval);
     
     //グラフとcanvasの上端or下端が交わる点のうち左側のx座標　グラフ式y=ax^2を使っている
-    const startX = Math.sqrt(Math.abs((scaleY - Origin.y) / paramA));
+    const yedge = paramA > 0 ? Origin.y / interval : -(scaleY-Origin.y) / interval;
+    const startX = Math.sqrt(yedge / paramA);
 
     const positionY = ((i:number) => {
-        return Math.abs(paramA * Math.pow(i+0.1, 2));
+        return Math.abs(paramA * Math.pow(i + 0.1, 2));
     })
     const isInsideCanvas = ((i:number) => {
-        return positionY(i) < Math.abs(scaleY - Origin.y);
+        return positionY(i) < Math.abs(yedge) + 1;
     })
 
     ctx.beginPath();
