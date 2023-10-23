@@ -6,23 +6,23 @@
             <h2>y=ax+bのグラフ</h2>
             <div id="paramA">
                 <label id="param">a</label>
-                <button @click="() => {graph1a -= 1, drawGraph()}">&lt;</button>
+                <button @click="() => {graph1a -= 1, paramUpdate()}">&lt;</button>
                 <input 
                     for="param" type="number" 
                     v-model="graph1a" 
-                    @keydown.enter="drawGraph"
-                    @change="drawGraph">
-                <button @click="() => {graph1a += 1, drawGraph()}">&gt;</button>
+                    @keydown.enter="paramUpdate"
+                    @change="paramUpdate">
+                <button @click="() => {graph1a += 1, paramUpdate()}">&gt;</button>
             </div>
             <div id="paramB">
                 <label id="param">b</label>
-                <button @click="() => {graph1b -= 1, drawGraph()}">&lt;</button>
+                <button @click="() => {graph1b -= 1, paramUpdate()}">&lt;</button>
                 <input
                     for="param" type="number" 
                     v-model="graph1b" 
-                    @keydown.enter="drawGraph"
-                    @change="drawGraph">
-                <button @click="() => {graph1b += 1, drawGraph()}">&gt;</button>
+                    @keydown.enter="paramUpdate"
+                    @change="paramUpdate">
+                <button @click="() => {graph1b += 1, paramUpdate()}">&gt;</button>
             </div>
             <div id="graphEq">
                 グラフの式：y={{ graph1aParam }}x{{ graph1bParam }}
@@ -33,13 +33,13 @@
             <h2>y=ax<sup>2</sup>のグラフ</h2>
             <div id="paramA">
                 <label id="param">a</label>
-                <button @click="() => {graph2Param -= 1, drawGraph()}">&lt;</button>
+                <button @click="() => {graph2Param -= 1, paramUpdate()}">&lt;</button>
                 <input
                     for="param" type="number" 
                     v-model="graph2Param" 
-                    @keydown.enter="drawGraph"
-                    @change="drawGraph">
-                <button @click="() => {graph2Param += 1, drawGraph()}">&gt;</button>
+                    @keydown.enter="paramUpdate"
+                    @change="paramUpdate">
+                <button @click="() => {graph2Param += 1, paramUpdate()}">&gt;</button>
             </div>
             <div id="graphEq">
                 グラフの式：y={{ graph2aParam }}x<sup>2</sup>
@@ -51,14 +51,14 @@
                 for="intervalSlider" type="range"
                 min="50" max="200"
                 v-model="interval"
-                @input="drawGraph()"
+                @input="() => paramUpdate()"
             >
         </div>
     </div>
 
     <br>
     <canvas 
-        id="ca" ref="caRef" 
+        id="ca" ref="canvasRef" 
         :width=scaleX :height=scaleY 
         @mousedown="mousedown"
         @mouseup="mouseup"
@@ -69,10 +69,12 @@
 
 <script setup lang="ts">
     import { ref, onMounted, computed, reactive } from 'vue';
+    import { coordinate, Origin } from './CoordinateDrawer'
+    import { clearGraph, graph1Draw, graph2Draw } from './GraphDrawer'
 
-    const caRef = ref<HTMLCanvasElement>()
+    const canvasRef = ref<HTMLCanvasElement>()
 
-    let Origin = {x: 500, y: 500};
+    let origin: Origin = {x: 500, y: 500};
 
     const scaleX = 1000;
     const scaleY = 600;
@@ -85,12 +87,13 @@
 
     const graph1aParam = computed(() => {
         const sign = (graph1a.value >= 0) ? "" : "-"
-        if( graph1a.value !== 0){
+        if(graph1a.value !== 0){
             return Math.abs(graph1a.value) == 1 ? sign : sign + Math.abs(graph1a.value)
         } else {
             return "";
         }
     })
+
     const graph1bParam = computed(() => {
         const sign = (graph1b.value > 0) ? "+" : "-"
         return !!(graph1b.value) ?  sign + Math.abs(graph1b.value) : ""
@@ -105,193 +108,36 @@
     })
 
     onMounted(() => {
-        coordinate();
-        drawGraph();
+        const ctx = canvasRef.value?.getContext("2d")
+        if(ctx){
+            coordinate(ctx, scaleX, scaleY, interval.value, origin);
+            paramUpdate();
+        }
     });
 
-    function drawGraph() {
-        clearGraph();
-        graph1Draw();
-        graph2Draw();
-    }
-
-
-    function clearGraph() {
-        const ca = caRef.value?.getContext("2d")
-        if(ca) {
-            ca.clearRect(0,0,scaleX,scaleY)
-            coordinate();
+    const paramUpdate = () => {
+        const ctx = canvasRef.value?.getContext("2d")
+        if(ctx){
+            clearGraph(ctx, scaleX, scaleY, interval.value, origin);
+            graph1Draw(ctx, scaleX, scaleY, interval.value, origin, graph1a.value, graph1b.value);
+            graph2Draw(ctx, scaleX, scaleY, interval.value, origin, graph2Param.value);
         }
     }
-    function graph1Draw(){
-        const ca = caRef.value?.getContext("2d")
-        const paramA = graph1a.value
-        const paramB = graph1b.value
 
-        if(ca){
-            ca.save();
-            ca.strokeStyle = "red";
-            ca.lineWidth = 4 / interval.value;
-            
-            /**
-             * グラフの端点の座標を算出　translate, scaleでの変換後の座標であることに注意
-             * x座標はグラフの式から計算している
-             * あらかじめtranslateとscaleで変換しておくとグラフの式がそのまま使えて良い
-            */
-            ca.translate(Origin.x, Origin.y)
-            ca.scale(interval.value, -interval.value)
-            const graphStart = {
-                x: (-(scaleY - Origin.y) / interval.value - paramB) / paramA,
-                y: -(scaleY - Origin.y) / interval.value
-            };
-            const graphEnd = {
-                x: (Origin.y / interval.value - paramB) / paramA,
-                y: Origin.y / interval.value
-            };
-            
-            ca.beginPath();
-            ca.moveTo(graphStart.x, graphStart.y)
-            ca.lineTo(graphEnd.x, graphEnd.y)
-            ca.stroke();
-            ca.restore();
-        }
-    }   
-    function graph2Draw() {
-        const ca = caRef.value?.getContext("2d");
-
-        if(ca){
-            ca.save();
-            ca.strokeStyle = "blue";
-            ca.lineWidth = 4 / interval.value;
-
-            ca.translate(Origin.x, Origin.y);
-            ca.scale(interval.value, -interval.value);
-            
-            //グラフとcanvasの上端or下端が交わる点のうち左側のx座標　グラフ式y=ax^2を使っている
-            const startX = Math.sqrt(Math.abs((scaleY - Origin.y) / graph2Param.value));
-
-            const positionY = ((i:number) => {
-                return Math.abs(graph2Param.value * Math.pow(i+0.1, 2));
-            })
-            const isInsideCanvas = ((i:number) => {
-                return positionY(i) < Math.abs(scaleY - Origin.y);
-            })
-
-            ca.beginPath();
-                for(let i = -startX; isInsideCanvas(i); i += 0.1){
-                    ca.moveTo(i,          graph2Param.value * Math.pow(i, 2));
-                    ca.lineTo(i + 0.1,    graph2Param.value * Math.pow(i + 0.1, 2));
-                }
-            ca.stroke();
-            ca.restore();
-        };
-    };
-
-    const mouseEventStatus = ref<string>("")
-    const mouseup       = ()                => mouseEventStatus.value = "mouseup"
-    const mousedown     = (ev: MouseEvent)  => mouseEventStatus.value = "mousedown"
+    const mouseStatus = ref<string>("")
+    const mouseup       = () => mouseStatus.value = "mouseup"
+    const mousedown     = () => mouseStatus.value = "mousedown"
     const scrollGraph   = ((ev: MouseEvent) => {
-        if (mouseEventStatus.value == "mousedown"){
-            Origin.x += ev.movementX;
-            Origin.y += ev.movementY;
-
-            coordinate();
-            drawGraph();
+        if (mouseStatus.value == "mousedown"){
+            origin.x += ev.movementX;
+            origin.y += ev.movementY;
+            const ctx = canvasRef.value?.getContext("2d")
+            if(ctx){
+                coordinate(ctx, scaleX, scaleY, interval.value, origin);
+                paramUpdate()
+            }
         }
     })
-
-
-      
-    function coordinate(){
-        coordinateAxis();
-        const ca = caRef.value?.getContext("2d")
-        if(ca) {
-            ca.save();
-            ca.fillStyle = "rgba(100, 100, 100, 0.4)"
-            ca.fillRect(0, 0, scaleX, scaleY)
-            ca.restore();
-
-            ca.save()
-            for(let i = 0; i <= scaleX / interval.value; i++){
-                //座標の方眼を描画
-                ca.save()
-                ca.beginPath()
-                    ca.lineWidth = 1
-                    ca.setLineDash([10,10])
-                    ca.strokeStyle = "rgba(0,0,0,0.3)"
-                    ca.moveTo(Origin.x % interval.value + i * interval.value,   0)
-                    ca.lineTo(Origin.x % interval.value + i * interval.value,   scaleY)
-                    ca.moveTo(0,        Origin.y % interval.value + i * interval.value)
-                    ca.lineTo(scaleX,   Origin.y % interval.value + i * interval.value)
-                ca.stroke()
-                ca.restore()
-
-                //座標に目盛と数値を追加
-                const coordinateXIndex = i - Math.trunc(Origin.x / interval.value);
-                const coordinateYIndex = i - Math.trunc(Origin.y / interval.value);
-                ca.save()
-                ca.strokeStyle = "rgba(0,0,0,1)"
-                ca.lineWidth = 4
-                ca.setLineDash([])
-                ca.font = "25px serif"                
-                ca.beginPath()
-                    if (coordinateXIndex != 0){
-                        ca.moveTo(Origin.x % interval.value + i * interval.value,   Origin.y - 10);
-                        ca.lineTo(Origin.x % interval.value + i * interval.value,   Origin.y + 10);
-                        ca.textBaseline = "top"
-                        ca.textAlign = "center"
-                        ca.fillText(
-                            `${coordinateXIndex}`, 
-                            Origin.x % interval.value + i*interval.value, 
-                            Origin.y + 10)
-                    }
-                    if (coordinateYIndex != 0) {
-                        ca.moveTo(Origin.x - 10,    Origin.y % interval.value + i * interval.value);
-                        ca.lineTo(Origin.x + 10,    Origin.y % interval.value + i * interval.value);
-                        ca.textBaseline = "middle"
-                        ca.textAlign = "right"
-                        ca.fillText(
-                            `${-coordinateYIndex}`, 
-                            Origin.x - 10, 
-                            Origin.y % interval.value + i*interval.value)
-                    }
-                ca.stroke()
-                ca.restore()
-            }
-            ca.restore()
-        }
-    }
-    function coordinateAxis(){
-        const ca = caRef.value?.getContext("2d")
-        if(ca) {
-            ca.save();
-            ca.lineWidth = 2.5;
-            ca.beginPath()
-                ca.moveTo(Origin.x, 0)
-                ca.lineTo(Origin.x, scaleY)
-                ca.moveTo(0, Origin.y)
-                ca.lineTo(scaleX, Origin.y)
-            ca.stroke()
-
-            ca.font = "30px serif"
-            ca.fillText("O", Origin.x - 40, Origin.y + 40)
-            
-            ca.font = "40px serif"
-            ca.textAlign = "start"
-            ca.textBaseline = "top"
-            ca.fillText("y", Origin.x + 10, 0)
-
-            ca.textAlign = "right"
-            ca.textBaseline = "bottom"
-            ca.fillText("x", scaleX - 10, Origin.y)
-
-            ca.restore();
-        }
-    }
-
-
-
-
 
 </script>
 
