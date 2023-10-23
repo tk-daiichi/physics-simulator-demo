@@ -60,8 +60,8 @@
     <canvas 
         id="ca" ref="canvasRef" 
         :width=scaleX :height=scaleY 
-        @mousedown="mousedown"
-        @mouseup="mouseup"
+        @mousedown = "mouseStatus = 'mousedown'"
+        @mouseup   = "mouseStatus = 'mouseup'"
         @mousemove="scrollGraph"
     >
     </canvas>
@@ -125,8 +125,6 @@
     }
 
     const mouseStatus = ref<string>("")
-    const mouseup       = () => mouseStatus.value = "mouseup"
-    const mousedown     = () => mouseStatus.value = "mousedown"
     const scrollGraph   = ((ev: MouseEvent) => {
         if (mouseStatus.value == "mousedown"){
             origin.x += ev.movementX;
