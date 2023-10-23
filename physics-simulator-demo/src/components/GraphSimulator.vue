@@ -6,23 +6,23 @@
             <h2>y=ax+bのグラフ</h2>
             <div id="paramA">
                 <label id="param">a</label>
-                <button id="" @click="paramADecrease()">&lt;</button>
-                <input
+                <button @click="() => {graph1a -= 1, drawGraph()}">&lt;</button>
+                <input 
                     for="param" type="number" 
                     v-model="graph1a" 
                     @keydown.enter="drawGraph"
                     @change="drawGraph">
-                <button @click="paramAIncrease()">&gt;</button>
+                <button @click="() => {graph1a += 1, drawGraph()}">&gt;</button>
             </div>
             <div id="paramB">
                 <label id="param">b</label>
-                <button @click="paramBDecrease()">&lt;</button>
-                <input 
+                <button @click="() => {graph1b -= 1, drawGraph()}">&lt;</button>
+                <input
                     for="param" type="number" 
                     v-model="graph1b" 
                     @keydown.enter="drawGraph"
                     @change="drawGraph">
-                <button @click="paramBIncrease()">&gt;</button>
+                <button @click="() => {graph1b += 1, drawGraph()}">&gt;</button>
             </div>
             <div id="graphEq">
                 グラフの式：y={{ graph1aParam }}x{{ graph1bParam }}
@@ -33,13 +33,13 @@
             <h2>y=ax<sup>2</sup>のグラフ</h2>
             <div id="paramA">
                 <label id="param">a</label>
-                <button @click="graph2Decrease()">&lt;</button>
+                <button @click="() => {graph2Param -= 1, drawGraph()}">&lt;</button>
                 <input
                     for="param" type="number" 
                     v-model="graph2Param" 
                     @keydown.enter="drawGraph"
                     @change="drawGraph">
-                <button @click="graph2Increase()">&gt;</button>
+                <button @click="() => {graph2Param += 1, drawGraph()}">&gt;</button>
             </div>
             <div id="graphEq">
                 グラフの式：y={{ graph2aParam }}x<sup>2</sup>
@@ -51,7 +51,7 @@
                 for="intervalSlider" type="range"
                 min="50" max="200"
                 v-model="interval"
-                @input="scaleUpdate()"
+                @input="drawGraph()"
             >
         </div>
     </div>
@@ -84,12 +84,16 @@
     const graph2Param = ref<number>(2)
 
     const graph1aParam = computed(() => {
-        const sign = (graph1b.value >= 0) ? "" : "-"
-        if( graph1b.value !== 0){
-            return Math.abs(graph1b.value) == 1 ? sign : sign + Math.abs(graph1b.value)
+        const sign = (graph1a.value >= 0) ? "" : "-"
+        if( graph1a.value !== 0){
+            return Math.abs(graph1a.value) == 1 ? sign : sign + Math.abs(graph1a.value)
         } else {
             return "";
         }
+    })
+    const graph1bParam = computed(() => {
+        const sign = (graph1b.value > 0) ? "+" : "-"
+        return !!(graph1b.value) ?  sign + Math.abs(graph1b.value) : ""
     })
     const graph2aParam = computed(() => {
         const sign = (graph2Param.value >= 0) ? "" : "-"
@@ -98,10 +102,6 @@
         } else {
             return "";
         }
-    })
-    const graph1bParam = computed(() => {
-        const sign = (graph1a.value > 0) ? "+" : "-"
-        return !!(graph1a.value) ?  sign + Math.abs(graph1a.value) : ""
     })
 
     onMounted(() => {
@@ -115,33 +115,6 @@
         graph2Draw();
     }
 
-    const scaleUpdate = (() => {
-        drawGraph()
-    })
-    const paramAIncrease = (() => {
-        graph1a.value += 1;
-        drawGraph()
-    })
-    const paramADecrease = (() => {
-        graph1a.value -= 1;
-        drawGraph()
-    })
-    const paramBIncrease = (() => {
-        graph1b.value += 1;
-        drawGraph()
-    })
-    const paramBDecrease = (() => {
-        graph1b.value -= 1;
-        drawGraph()
-    })
-    const graph2Increase = (() => {
-        graph2Param.value += 1;
-        drawGraph()
-    })
-    const graph2Decrease = (() => {
-        graph2Param.value -= 1;
-        drawGraph()
-    })
 
     function clearGraph() {
         const ca = caRef.value?.getContext("2d")
@@ -168,11 +141,11 @@
             ca.translate(Origin.x, Origin.y)
             ca.scale(interval.value, -interval.value)
             const graphStart = {
-                x: (-(scaleY - Origin.y) / interval.value - paramA) / paramB,
+                x: (-(scaleY - Origin.y) / interval.value - paramB) / paramA,
                 y: -(scaleY - Origin.y) / interval.value
             };
             const graphEnd = {
-                x: (Origin.y / interval.value - paramA) / paramB,
+                x: (Origin.y / interval.value - paramB) / paramA,
                 y: Origin.y / interval.value
             };
             
