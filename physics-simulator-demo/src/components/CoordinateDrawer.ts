@@ -18,16 +18,18 @@ export function coordinate(
 
     ctx.save()
     for(let i = 0; i <= scaleX / interval; i++){
+        const offsetX = Origin.x % interval;
+        const offsetY = Origin.y % interval;
         //座標の方眼を描画
         ctx.save()
         ctx.beginPath()
             ctx.lineWidth = 1
             ctx.setLineDash([10,10])
             ctx.strokeStyle = "rgba(0,0,0,0.3)"
-            ctx.moveTo(Origin.x % interval + i * interval,   0)
-            ctx.lineTo(Origin.x % interval + i * interval,   scaleY)
-            ctx.moveTo(0,        Origin.y % interval + i * interval)
-            ctx.lineTo(scaleX,   Origin.y % interval + i * interval)
+            ctx.moveTo(offsetX + i * interval,   0)
+            ctx.lineTo(offsetX + i * interval,   scaleY)
+            ctx.moveTo(0,        offsetY + i * interval)
+            ctx.lineTo(scaleX,   offsetY + i * interval)
         ctx.stroke()
         ctx.restore()
 
@@ -41,24 +43,24 @@ export function coordinate(
         ctx.font = "25px serif"                
         ctx.beginPath()
             if (coordinateXIndex != 0){
-                ctx.moveTo(Origin.x % interval + i * interval,   Origin.y - 10);
-                ctx.lineTo(Origin.x % interval + i * interval,   Origin.y + 10);
+                ctx.moveTo(offsetX + i * interval,   Origin.y - 10);
+                ctx.lineTo(offsetX + i * interval,   Origin.y + 10);
                 ctx.textBaseline = "top"
                 ctx.textAlign = "center"
                 ctx.fillText(
                     `${coordinateXIndex}`, 
-                    Origin.x % interval + i*interval, 
+                    offsetX + i*interval, 
                     Origin.y + 10)
             }
             if (coordinateYIndex != 0) {
-                ctx.moveTo(Origin.x - 10,    Origin.y % interval + i * interval);
-                ctx.lineTo(Origin.x + 10,    Origin.y % interval + i * interval);
+                ctx.moveTo(Origin.x - 10,    offsetY + i * interval);
+                ctx.lineTo(Origin.x + 10,    offsetY + i * interval);
                 ctx.textBaseline = "middle"
                 ctx.textAlign = "right"
                 ctx.fillText(
                     `${-coordinateYIndex}`, 
                     Origin.x - 10, 
-                    Origin.y % interval + i*interval)
+                    offsetY + i*interval)
             }
         ctx.stroke()
         ctx.restore()
