@@ -1,4 +1,4 @@
-import { coordinate, Origin } from './CoordinateDrawer'
+import { coordinate, Origin } from '@/components/CoordinateDrawer'
 
 export function clearGraph(
     ctx: CanvasRenderingContext2D,
