@@ -41,7 +41,7 @@
                     @change="paramUpdate">
                 <button @click="() => {graph2a += 1, paramUpdate()}">&gt;</button>
             </div>
-            <div id="paramA">
+            <div id="paramB">
                 <label id="param">b</label>
                 <button @click="() => {graph2b -= 1, paramUpdate()}">&lt;</button>
                 <input
@@ -51,7 +51,7 @@
                     @change="paramUpdate">
                 <button @click="() => {graph2b += 1, paramUpdate()}">&gt;</button>
             </div>
-            <div id="paramA">
+            <div id="paramC">
                 <label id="param">c</label>
                 <button @click="() => {graph2c -= 1, paramUpdate()}">&lt;</button>
                 <input
@@ -149,16 +149,16 @@
     #graph1, #graph2 {
         text-align: left;
     }
-    #paramA {
+    #paramA, #paramB{
         margin-bottom: 10px;
     }
-    #paramA, #paramB {
+    #paramA, #paramB, #paramC {
         display: flex;
         justify-content: space-between;
-        align-items: stretch;
         font-size: 10px;
     }
     label {
+        width: 10px;
         margin-left: 10px;
         margin-right: 10px;
         font-size: 20px;
