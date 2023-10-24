@@ -19,7 +19,7 @@
     import { ref, onMounted } from 'vue'
 
     const canvasRef = ref<HTMLCanvasElement>();
-    const suuji = ref<number>()
+    const suuji = ref<number>();
     let digitCounter = ref<number>()
 
     function showIngicator(num:number){
