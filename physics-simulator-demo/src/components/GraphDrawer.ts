@@ -51,7 +51,10 @@ export function graph2Draw(
     scaleY: number,
     interval: number,
     Origin: Origin,
-    paramA: number
+    paramA: number,
+    paramB: number,
+    paramC: number,
+
 ) {
     ctx.save();
     ctx.strokeStyle = "blue";
@@ -60,22 +63,16 @@ export function graph2Draw(
     ctx.translate(Origin.x, Origin.y);
     ctx.scale(interval, -interval);
     
-    //グラフとcanvasの上端or下端が交わる点のうち左側のx座標　グラフ式y=ax^2を使っている
-    const yedge = paramA > 0 ? Origin.y / interval : -(scaleY-Origin.y) / interval;
-    const startX = Math.sqrt(yedge / paramA);
-
-    const positionY = ((i:number) => {
-        return Math.abs(paramA * Math.pow(i + 0.1, 2));
-    })
-    const isInsideCanvas = ((i:number) => {
-        return positionY(i) < Math.abs(yedge) + 1;
-    })
-
-    ctx.beginPath();
-        for(let i = -startX; isInsideCanvas(i); i += 0.1){
-            ctx.moveTo(i,          paramA * Math.pow(i, 2));
-            ctx.lineTo(i + 0.1,    paramA * Math.pow(i + 0.1, 2));
-        }
-    ctx.stroke();
+    if(paramA != 0){
+        const yedge = paramA > 0 ? Origin.y / interval : -(scaleY-Origin.y) / interval;
+        const startX = -Math.sqrt(Math.abs((yedge - paramC) / paramA)) + paramB;
+        const endX   = Math.sqrt(Math.abs((yedge - paramC) / paramA)) + paramB;
+        ctx.beginPath();
+            for(let i = startX; i <= endX; i += 0.1){
+                ctx.moveTo(i,          paramA * Math.pow(i - paramB, 2) + paramC);
+                ctx.lineTo(i + 0.1,    paramA * Math.pow(i + 0.1 - paramB, 2) + paramC);
+            }
+        ctx.stroke();
+    }
     ctx.restore();
 };
