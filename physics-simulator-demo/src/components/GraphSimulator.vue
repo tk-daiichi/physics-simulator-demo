@@ -25,24 +25,44 @@
                 <button @click="() => {graph1b += 1, paramUpdate()}">&gt;</button>
             </div>
             <div id="graphEq">
-                グラフの式：y={{ graph1aParam }}x{{ graph1bParam }}
+                グラフの式：{{ graph1Eq(graph1a, graph1b) }}
             </div>
         </div>
         
         <div id="graph2">
-            <h2>y=ax<sup>2</sup>のグラフ</h2>
+            <h2>y=a(x-b)<sup>2</sup>+cのグラフ</h2>
             <div id="paramA">
                 <label id="param">a</label>
-                <button @click="() => {graph2Param -= 1, paramUpdate()}">&lt;</button>
+                <button @click="() => {graph2a -= 1, paramUpdate()}">&lt;</button>
                 <input
                     for="param" type="number" 
-                    v-model="graph2Param" 
+                    v-model="graph2a" 
                     @keydown.enter="paramUpdate"
                     @change="paramUpdate">
-                <button @click="() => {graph2Param += 1, paramUpdate()}">&gt;</button>
+                <button @click="() => {graph2a += 1, paramUpdate()}">&gt;</button>
+            </div>
+            <div id="paramA">
+                <label id="param">b</label>
+                <button @click="() => {graph2b -= 1, paramUpdate()}">&lt;</button>
+                <input
+                    for="param" type="number" 
+                    v-model="graph2b" 
+                    @keydown.enter="paramUpdate"
+                    @change="paramUpdate">
+                <button @click="() => {graph2b += 1, paramUpdate()}">&gt;</button>
+            </div>
+            <div id="paramA">
+                <label id="param">c</label>
+                <button @click="() => {graph2c -= 1, paramUpdate()}">&lt;</button>
+                <input
+                    for="param" type="number" 
+                    v-model="graph2c" 
+                    @keydown.enter="paramUpdate"
+                    @change="paramUpdate">
+                <button @click="() => {graph2c += 1, paramUpdate()}">&gt;</button>
             </div>
             <div id="graphEq">
-                グラフの式：y={{ graph2aParam }}x<sup>2</sup>
+                グラフの式：<span v-html="graph2Eq(graph2a, graph2b, graph2c)"></span>
             </div>
         </div>
         <div>
@@ -51,7 +71,7 @@
                 for="intervalSlider" type="range"
                 min="50" max="200"
                 v-model="interval"
-                @input="() => paramUpdate()"
+                @input="paramUpdate()"
             >
         </div>
     </div>
@@ -68,9 +88,10 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, onMounted, computed, reactive } from 'vue';
+    import { ref, onMounted } from 'vue';
     import { coordinate, Origin } from './CoordinateDrawer'
     import { clearGraph, graph1Draw, graph2Draw } from './GraphDrawer'
+    import { graph1Eq, graph2Eq } from './GraphEquality'
 
     const canvasRef = ref<HTMLCanvasElement>()
 
@@ -83,29 +104,10 @@
 
     const graph1a = ref<number>(1);
     const graph1b = ref<number>(-2);
-    const graph2Param = ref<number>(2)
+    const graph2a = ref<number>(-1)
+    const graph2b = ref<number>(1)
+    const graph2c = ref<number>(1)
 
-    const graph1aParam = computed(() => {
-        const sign = (graph1a.value >= 0) ? "" : "-"
-        if(graph1a.value !== 0){
-            return Math.abs(graph1a.value) == 1 ? sign : sign + Math.abs(graph1a.value)
-        } else {
-            return "";
-        }
-    })
-
-    const graph1bParam = computed(() => {
-        const sign = (graph1b.value > 0) ? "+" : "-"
-        return !!(graph1b.value) ?  sign + Math.abs(graph1b.value) : ""
-    })
-    const graph2aParam = computed(() => {
-        const sign = (graph2Param.value >= 0) ? "" : "-"
-        if( graph2Param.value !== 0){
-            return Math.abs(graph2Param.value) == 1 ? sign : sign + Math.abs(graph2Param.value)
-        } else {
-            return "";
-        }
-    })
 
     onMounted(() => {
         const ctx = canvasRef.value?.getContext("2d")
@@ -120,7 +122,7 @@
         if(ctx){
             clearGraph(ctx, scaleX, scaleY, interval.value, origin);
             graph1Draw(ctx, scaleX, scaleY, interval.value, origin, graph1a.value, graph1b.value);
-            graph2Draw(ctx, scaleX, scaleY, interval.value, origin, graph2Param.value);
+            graph2Draw(ctx, scaleX, scaleY, interval.value, origin, graph2a.value, graph2b.value, graph2c.value);
         }
     }
 
