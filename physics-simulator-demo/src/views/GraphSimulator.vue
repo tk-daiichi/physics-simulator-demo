@@ -108,15 +108,6 @@
     const graph2b = ref<number>(1)
     const graph2c = ref<number>(1)
 
-
-    onMounted(() => {
-        const ctx = canvasRef.value?.getContext("2d")
-        if(ctx){
-            coordinate(ctx, scaleX, scaleY, interval.value, origin);
-            paramUpdate();
-        }
-    });
-
     const paramUpdate = () => {
         const ctx = canvasRef.value?.getContext("2d")
         if(ctx){
@@ -126,6 +117,14 @@
         }
     }
 
+    onMounted(() => {
+        const ctx = canvasRef.value?.getContext("2d")
+        if(ctx){
+            paramUpdate();
+        }
+    });
+
+
     const mouseStatus = ref<string>("")
     const scrollGraph   = ((ev: MouseEvent) => {
         if (mouseStatus.value == "mousedown"){
@@ -133,7 +132,6 @@
             origin.y += ev.movementY;
             const ctx = canvasRef.value?.getContext("2d")
             if(ctx){
-                coordinate(ctx, scaleX, scaleY, interval.value, origin);
                 paramUpdate()
             }
         }
