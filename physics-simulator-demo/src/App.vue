@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import NumIngicator from './components/NumIngicator.vue'
-  import GraphSimulator from './components/GraphSimulator.vue'
+  import NumIngicator from '@/views/NumIngicator.vue'
+  import GraphSimulator from '@/views/GraphSimulator.vue'
 </script>
 
 <template>

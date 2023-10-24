@@ -89,9 +89,9 @@
 
 <script setup lang="ts">
     import { ref, onMounted } from 'vue';
-    import { coordinate, Origin } from './CoordinateDrawer'
-    import { clearGraph, graph1Draw, graph2Draw } from './GraphDrawer'
-    import { graph1Eq, graph2Eq } from './GraphEquality'
+    import { coordinate, Origin } from '@/components/CoordinateDrawer'
+    import { clearGraph, graph1Draw, graph2Draw } from '@/components/GraphDrawer'
+    import { graph1Eq, graph2Eq } from '@/components/GraphEquality'
 
     const canvasRef = ref<HTMLCanvasElement>()
 
