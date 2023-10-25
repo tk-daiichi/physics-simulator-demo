@@ -36,11 +36,12 @@
 
     const showIngicator = (() => {
         const ctx = canvasRef.value?.getContext("2d")
-        const data = suuji.value ? suuji.value : 0
+        const data = suuji.value ?? 0
         if (ctx) {
             drawIngicator(ctx, data);
         }
-        digitCounter.value = !!data ? data.toString.length : 0;
+
+        digitCounter.value = !!data ? data.toString().length : 0;
     })  
 </script>
 
