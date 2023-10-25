@@ -1,23 +1,14 @@
-export function numToIngicator(num: number): number[][] {
-    const ingicatorSequence: Array<number[]> = [];
-    const numarray = numArray(num);
-    for (let i = 0; i < numarray.length; i++){
-        console.log(typeof numarray[i])
-        if(typeof numarray[i] === "number"){
-            const numIngi = numIngicator(numarray[i]);
-            ingicatorSequence.push(numIngi);
+export function numToIngicator(num: number[]): number[][] {
+    const ingicatorSequence: number[][] = [];
+    if(num.length != 0){
+        for (let i = 0; i < num.length; i++){
+            ingicatorSequence.push(numIngicator(num[i]));
         }
+        return ingicatorSequence;
+    } else {
+        ingicatorSequence.push(numIngicator(0));
+        return ingicatorSequence
     }
-    return ingicatorSequence;
-}
-
-export function numArray(num :number): number[] {
-    const sequence: number[] = [];
-    const numString = num.toString()
-    for (let i=0; i < numString.length; i++){
-        sequence.push(Number(numString[i]))
-    }
-    return sequence;
 }
 
 export function numIngicator(num:number): number[] { 

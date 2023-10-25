@@ -8,7 +8,7 @@
                 <input 
                     placeholder="整数を入力" 
                     v-model="suuji" 
-                    type = "number"
+                    type = "text"
                     @input.prevent="showIngicator()">
             </label>
         </form>
@@ -27,10 +27,8 @@
     const canvasRef = ref<HTMLCanvasElement>();
     const width = 1000;
     const height = 500;
-    const suuji = ref<number>();
+    const suuji = ref<string>();
     let digitCounter = ref<number>()
-
-
 
     onMounted(() => {
         showIngicator();
@@ -38,12 +36,18 @@
 
     const showIngicator = (() => {
         const ctx = canvasRef.value?.getContext("2d")
-        const data = suuji.value ?? 0
+        const data: number[] = []
+        if(suuji.value){
+            for (let i = 0; i < suuji.value.length; i++){
+                if(!isNaN( Number(suuji.value[i]) )) {
+                    data.push(Number(suuji.value[i]))
+                }
+            }
+        }
         if (ctx) {
             drawIngicator(ctx, data, width, height);
         }
-
-        digitCounter.value = !!data ? data.toString().length : 0;
+        digitCounter.value = data.length ?? 0;
     })  
 </script>
 
