@@ -1,7 +1,7 @@
-export function numToIngicator(num: number) {
-    const ingicatorSequence = [];
+export function numToIngicator(num: number): number[][] {
+    const ingicatorSequence: Array<number[]> = [];
     const numarray = numArray(num);
-    for (let i=0; i<numarray.length; i++){
+    for (let i = 0; i < numarray.length; i++){
         console.log(typeof numarray[i])
         if(typeof numarray[i] === "number"){
             const numIngi = numIngicator(numarray[i]);
@@ -11,8 +11,8 @@ export function numToIngicator(num: number) {
     return ingicatorSequence;
 }
 
-export function numArray(num :number) {
-    const sequence = [];
+export function numArray(num :number): number[] {
+    const sequence: number[] = [];
     const numString = num.toString()
     for (let i=0; i < numString.length; i++){
         sequence.push(Number(numString[i]))
@@ -20,7 +20,7 @@ export function numArray(num :number) {
     return sequence;
 }
 
-export function numIngicator(num:number|undefined) { 
+export function numIngicator(num:number): number[] { 
     switch (num) {
         case 0:
             return [1,0,1,1,1,1,1];
@@ -42,5 +42,7 @@ export function numIngicator(num:number|undefined) {
             return [1,1,1,1,1,1,1];
         case 9:
             return [0,1,1,1,1,0,1];
+        default:
+            return []
     }
 }
