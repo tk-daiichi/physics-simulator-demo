@@ -15,7 +15,7 @@
         <div>桁数：{{ digitCounter }}</div>
     </div>
     <canvas 
-        width="1000" height="500" 
+        :width=width :height=height 
         id="canvas" ref="canvasRef">
     </canvas>
 </template>
@@ -25,6 +25,8 @@
     import { drawIngicator } from '../components/DrawIngicator'
 
     const canvasRef = ref<HTMLCanvasElement>();
+    const width = 1000;
+    const height = 500;
     const suuji = ref<number>();
     let digitCounter = ref<number>()
 
@@ -38,7 +40,7 @@
         const ctx = canvasRef.value?.getContext("2d")
         const data = suuji.value ?? 0
         if (ctx) {
-            drawIngicator(ctx, data);
+            drawIngicator(ctx, data, width, height);
         }
 
         digitCounter.value = !!data ? data.toString().length : 0;
