@@ -1,28 +1,32 @@
 <template>
     <h1>グラフシミュレータ</h1>
 
+    <v-container class="">
+
     <div id="graphInfo">
         <div id="graph1">
-            <h2>y=ax+bのグラフ</h2>
+            <h2 class="mb-2">y=ax+bのグラフ</h2>
             <div id="paramA">
                 <label id="param">a</label>
-                <button @click="() => {graph1a -= 1, paramUpdate()}">&lt;</button>
+                <v-btn id="parambtn" @click="() => {graph1a -= 1, paramUpdate()}">&lt;</v-btn>
                 <input 
                     for="param" type="number" 
+                    id="paramInput"
                     v-model="graph1a" 
                     @keydown.enter="paramUpdate"
                     @change="paramUpdate">
-                <button @click="() => {graph1a += 1, paramUpdate()}">&gt;</button>
+                <v-btn id="parambtn" @click="() => {graph1a += 1, paramUpdate()}">&gt;</v-btn>
             </div>
             <div id="paramB">
                 <label id="param">b</label>
-                <button @click="() => {graph1b -= 1, paramUpdate()}">&lt;</button>
+                <v-btn id="parambtn" @click="() => {graph1b -= 1, paramUpdate()}">&lt;</v-btn>
                 <input
-                    for="param" type="number" 
+                    for="param" type="number"
+                    id="paramInput"
                     v-model="graph1b" 
                     @keydown.enter="paramUpdate"
                     @change="paramUpdate">
-                <button @click="() => {graph1b += 1, paramUpdate()}">&gt;</button>
+                <v-btn id="parambtn" @click="() => {graph1b += 1, paramUpdate()}">&gt;</v-btn>
             </div>
             <div id="graphEq">
                 グラフの式：{{ graph1Eq(graph1a, graph1b) }}
@@ -33,33 +37,36 @@
             <h2>y=a(x-b)<sup>2</sup>+cのグラフ</h2>
             <div id="paramA">
                 <label id="param">a</label>
-                <button @click="() => {graph2a -= 1, paramUpdate()}">&lt;</button>
+                <v-btn id="parambtn" @click="() => {graph2a -= 1, paramUpdate()}">&lt;</v-btn>
                 <input
                     for="param" type="number" 
+                    id="paramInput"
                     v-model="graph2a" 
                     @keydown.enter="paramUpdate"
                     @change="paramUpdate">
-                <button @click="() => {graph2a += 1, paramUpdate()}">&gt;</button>
+                <v-btn id="parambtn" @click="() => {graph2a += 1, paramUpdate()}">&gt;</v-btn>
             </div>
             <div id="paramB">
                 <label id="param">b</label>
-                <button @click="() => {graph2b -= 1, paramUpdate()}">&lt;</button>
+                <v-btn id="parambtn" @click="() => {graph2b -= 1, paramUpdate()}">&lt;</v-btn>
                 <input
                     for="param" type="number" 
+                    id="paramInput"
                     v-model="graph2b" 
                     @keydown.enter="paramUpdate"
                     @change="paramUpdate">
-                <button @click="() => {graph2b += 1, paramUpdate()}">&gt;</button>
+                <v-btn id="parambtn" @click="() => {graph2b += 1, paramUpdate()}">&gt;</v-btn>
             </div>
             <div id="paramC">
                 <label id="param">c</label>
-                <button @click="() => {graph2c -= 1, paramUpdate()}">&lt;</button>
+                <v-btn id="parambtn" @click="() => {graph2c -= 1, paramUpdate()}">&lt;</v-btn>
                 <input
                     for="param" type="number" 
+                    id="paramInput"
                     v-model="graph2c" 
                     @keydown.enter="paramUpdate"
                     @change="paramUpdate">
-                <button @click="() => {graph2c += 1, paramUpdate()}">&gt;</button>
+                <v-btn id="parambtn" @click="() => {graph2c += 1, paramUpdate()}">&gt;</v-btn>
             </div>
             <div id="graphEq">
                 グラフの式：<span v-html="graph2Eq(graph2a, graph2b, graph2c)"></span>
@@ -76,15 +83,16 @@
         </div>
     </div>
 
-    <br>
     <canvas 
         id="ca" ref="canvasRef" 
         :width=scaleX :height=scaleY 
         @mousedown = "mouseStatus = 'mousedown'"
         @mouseup   = "mouseStatus = 'mouseup'"
         @mousemove="scrollGraph"
-    >
+        >
     </canvas>
+
+</v-container>
 </template>
 
 <script setup lang="ts">
@@ -161,16 +169,22 @@
         margin-right: 10px;
         font-size: 20px;
     }
-    button {
+    #parambtn {
         margin-right: 10px;
         margin-left: 10px;
-        border: 1px solid black;
+        font-size: 20px;
         font-weight: bold;
+        min-width: 10px;
+        height: 30px;
+        border: 1px solid #ccc;
         background-color: #eee;
     }
-    input{
+    #paramInput{
+        width: 80px;
         height: 30px;
         font-size: 20px;
+        padding-left: 3px;
+        border: 1px solid black;
     }
     #graphEq {
         font-size: 20px;
