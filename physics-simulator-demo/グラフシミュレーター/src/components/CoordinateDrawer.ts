@@ -12,7 +12,7 @@ export function coordinate(
     coordinateAxis(ctx, scaleX, scaleY, interval, Origin);
 
     ctx.save();
-    ctx.fillStyle = "rgba(100, 100, 100, 0.4)"
+    ctx.fillStyle = "rgba(100, 100, 100, 0.1)"
     ctx.fillRect(0, 0, scaleX, scaleY)
     ctx.restore();
 
@@ -77,7 +77,7 @@ export function coordinateAxis(
     ){
     if(ctx) {
         ctx.save();
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 1;
         ctx.beginPath()
             ctx.moveTo(Origin.x, 0)
             ctx.lineTo(Origin.x, scaleY)
@@ -85,10 +85,10 @@ export function coordinateAxis(
             ctx.lineTo(scaleX, Origin.y)
         ctx.stroke()
 
-        ctx.font = "25px serif"
-        ctx.fillText("O", Origin.x - 40, Origin.y + 40)
+        ctx.font = "20px serif"
+        ctx.fillText("O", Origin.x - 30, Origin.y + 30)
         
-        ctx.font = "40px serif"
+        ctx.font = "20px serif"
         ctx.textAlign = "start"
         ctx.textBaseline = "top"
         ctx.fillText("y", Origin.x + 10, 0)

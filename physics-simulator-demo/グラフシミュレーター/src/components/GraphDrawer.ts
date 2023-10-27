@@ -20,7 +20,7 @@ export function graph1Draw(
     paramB: number,
 ){
     ctx.save();
-    ctx.strokeStyle = "red";
+    ctx.strokeStyle = "rgb(200,100,100)";
     ctx.lineWidth = 4 / interval;
     
     /**
@@ -57,7 +57,7 @@ export function graph2Draw(
 
 ) {
     ctx.save();
-    ctx.strokeStyle = "blue";
+    ctx.strokeStyle = "rgb(100,100,200)";
     ctx.lineWidth = 4 / interval;
 
     ctx.translate(Origin.x, Origin.y);
