@@ -93,7 +93,7 @@
                 <label id="intervalSlider">縮尺</label>
                 <input 
                     for="intervalSlider" type="range"
-                    min="5" max="200"
+                    min="50" max="200"
                     v-model="interval"
                     @input="paramUpdate()">
             </v-sheet>
@@ -112,17 +112,17 @@
     const windowWidth   = ref<number>(window.innerWidth)
     const windowHeight   = ref<number>(window.innerHeight)
     const scaleX        = ref<number>(windowWidth.value * 0.7);
-    const scaleY        = ref<number>(windowHeight.value * 0.5);
+    const scaleY        = ref<number>(windowHeight.value * 0.6);
     let origin: Origin  = reactive({x: scaleX.value*0.5, y: scaleY.value*0.5});
-    const interval = ref<number>(scaleY.value * 0.1);
+    const interval = ref<number>(scaleX.value * 0.2);
     
     window.onresize = (() => {
         new Promise ((resolve) => {
             windowWidth.value   = window.innerWidth
             windowHeight.value  = window.innerHeight
             scaleX.value        = windowWidth.value * 0.7
-            scaleY.value        = windowHeight.value * 0.5
-            interval.value      = scaleY.value * 0.1;
+            scaleY.value        = windowHeight.value * 0.6
+            interval.value      = scaleX.value * 0.2;
             origin              = {x: windowWidth.value * 0.4, y: windowHeight.value * 0.4}
             resolve("");
         }).then(() => {

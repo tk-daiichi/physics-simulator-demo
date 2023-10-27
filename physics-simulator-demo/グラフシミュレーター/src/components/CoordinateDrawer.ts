@@ -9,7 +9,7 @@ export function coordinate(
     interval: number,
     Origin: Origin
 ){
-    coordinateAxis(ctx, scaleX, scaleY, Origin);
+    coordinateAxis(ctx, scaleX, scaleY, interval, Origin);
 
     ctx.save();
     ctx.fillStyle = "rgba(100, 100, 100, 0.4)"
@@ -17,7 +17,8 @@ export function coordinate(
     ctx.restore();
 
     ctx.save()
-    for(let i = 0; i <= scaleX / interval; i++){
+    const range = Math.max(scaleX, scaleY) / interval
+    for(let i = 0; i <= range; i++){
         const offsetX = Origin.x % interval;
         const offsetY = Origin.y % interval;
         //座標の方眼を描画
@@ -38,7 +39,7 @@ export function coordinate(
         const coordinateYIndex = i - Math.trunc(Origin.y / interval);
         ctx.save()
         ctx.strokeStyle = "rgba(0,0,0,1)"
-        ctx.lineWidth = 4
+        ctx.lineWidth = 1
         ctx.setLineDash([])
         ctx.font = "25px serif"                
         ctx.beginPath()
@@ -71,6 +72,7 @@ export function coordinateAxis(
     ctx: CanvasRenderingContext2D,
     scaleX: number,
     scaleY: number,
+    interval: number,
     Origin: Origin
     ){
     if(ctx) {
@@ -83,14 +85,14 @@ export function coordinateAxis(
             ctx.lineTo(scaleX, Origin.y)
         ctx.stroke()
 
-        ctx.font = "30px serif"
+        ctx.font = "25px serif"
         ctx.fillText("O", Origin.x - 40, Origin.y + 40)
         
         ctx.font = "40px serif"
         ctx.textAlign = "start"
         ctx.textBaseline = "top"
         ctx.fillText("y", Origin.x + 10, 0)
-
+        
         ctx.textAlign = "right"
         ctx.textBaseline = "bottom"
         ctx.fillText("x", scaleX - 10, Origin.y)
