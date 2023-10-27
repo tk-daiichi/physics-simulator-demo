@@ -1,12 +1,14 @@
+<template>
+  <v-app>
+    <v-main>
+      <GraphSimulator></GraphSimulator>
+    </v-main>
+  </v-app>
+</template>
+
 <script setup lang="ts">
-  import NumIngicator from '@/views/NumIngicator.vue'
   import GraphSimulator from '@/views/GraphSimulator.vue'
 </script>
-
-<template>
-  <!-- <NumIngicator></NumIngicator> -->
-  <GraphSimulator></GraphSimulator>
-</template>
 
 <style scoped>
 .logo {
