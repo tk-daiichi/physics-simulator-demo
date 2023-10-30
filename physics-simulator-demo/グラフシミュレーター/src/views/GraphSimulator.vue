@@ -150,7 +150,7 @@
         ev.preventDefault();
         interval.value += ev.deltaY * -0.1
 
-        interval.value = Math.min(Math.max(50,interval.value), 200)
+        interval.value = Math.min(Math.max(10,interval.value), 200)
 
         const ctx = canvasRef.value?.getContext("2d")
         if(ctx){
