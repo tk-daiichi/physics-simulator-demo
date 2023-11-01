@@ -3,11 +3,16 @@
     <!-- <div id="container"></div> -->
     <div class="sim-body">
         <v-stage :config="stage_cfg" ref="stage" class="stage">
-            <v-layer :config="layer_cfg" ref="back_layer"><v-rect :config="bgRect_cfg"/></v-layer>
+            <v-layer :config="layer_cfg" ref="back_layer">
+                <v-rect :config="bgRect_cfg"/>
+            </v-layer>
             <v-layer :config="layer_cfg" ref="cor_layer">
                 <!-- <v-line :config="coordinate_cfg"></v-line> -->
             </v-layer>
             <v-layer :config="layer_cfg" ref="ball_layer">
+                <v-circle 
+                    :config="circle_cfg" ref="circle2">
+                </v-circle>
                 <v-circle 
                     :config="circle_cfg" ref="circle">
                 </v-circle>
@@ -31,55 +36,72 @@
     const posX = ref<number>()
     const posY = ref<number>()
     onMounted(() => {
-        if(circle.value) {
-            // @ts-ignore
-            const circleNode = circle.value.getNode()
-
-            let positionX = circle_cfg.x                    
-            let positionY = circle_cfg.y
-
-            const period: number = 3;
-            let velX = 10 / period;
-            let velY = velX;
-
-            let anim = new Konva.Animation(function(frame) {
-                if(frame){
-                    let borderXl = positionX - circle_cfg.radius + velX;
-                    let borderXr = positionX + circle_cfg.radius + velX;
-                    if(borderXl > 0 && borderXr < stage_cfg.width){
-                    } else if(borderXl <= 0){
-                        velX = frame.timeDiff / period;
-                    } else if (borderXr >= stage_cfg.width) {
-                        velX = -frame.timeDiff / period;
-                    };
-                    
-                    let borderYt = positionY - circle_cfg.radius + velY;
-                    let borderYb = positionY + circle_cfg.radius + velY;
-                    if(borderYt > 0 && borderYb < stage_cfg.height){
-                    } else if(borderYt <= 0){
-                        velY = frame.timeDiff / period;
-                    } else if (borderYb >= stage_cfg.height) {
-                        velY = -frame.timeDiff / period;
-                    };
-
-                    positionX += velX;
-                    positionY += velY;
-                    circleNode.setX(positionX);
-                    circleNode.setY(positionY);
-                    posX.value = Math.round(positionX);
-                    posY.value = Math.round(positionY);
-                };
-            }, circleNode.getLayer());
-            anim.start();
+        if(circle.value){
+            bounceball(circle.value, stage_cfg, circle_cfg)
         }
     })
+    function bounceball(
+        shape: Konva.Circle, 
+        stage_cfg: StageConfig,
+        shape_cfg: CircleConfig,
+    ){
+        // @ts-ignore
+        const circleNode = shape.getNode()
+        let positionX = shape_cfg.x                    
+        let positionY = shape_cfg.y
+
+        const period: number = 3;
+        let velX = 10 / period;
+        let velY = velX;
+
+        let anim = new Konva.Animation(function(frame) {
+            if(frame){
+                let borderXl = positionX - shape_cfg.radius + velX;
+                let borderXr = positionX + shape_cfg.radius + velX;
+                if(borderXl > 0 && borderXr < stage_cfg.width){
+                } else if(borderXl <= 0){
+                    velX = frame.timeDiff / period;
+                } else if (borderXr >= stage_cfg.width) {
+                    velX = -frame.timeDiff / period;
+                };
+                
+                let borderYt = positionY - shape_cfg.radius + velY;
+                let borderYb = positionY + shape_cfg.radius + velY;
+                if(borderYt > 0 && borderYb < stage_cfg.height){
+                } else if(borderYt <= 0){
+                    velY = frame.timeDiff / period;
+                } else if (borderYb >= stage_cfg.height) {
+                    velY = -frame.timeDiff / period;
+                };
+
+                positionX += velX;
+                positionY += velY;
+                circleNode.setX(positionX);
+                circleNode.setY(positionY);
+
+                if (positionX && positionY){
+                    posX.value = Math.round(positionX);
+                    posY.value = Math.round(positionY);
+                }
+            };
+        }, circleNode.getLayer());
+        anim.start();
+    }
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    const stage_cfg = { width: width*0.5, height: height*0.7 };
+    type StageConfig = {
+        width: number,
+        height: number
+    }
+    const stage_cfg: StageConfig = { 
+        width: width * 0.5, 
+        height: height * 0.7 
+    };
+
     const layer_cfg = { 
-        x:0,
-        y:0,
+        x: 0,
+        y: 0,
     }
     const bgRect_cfg = {
         x: 0,
@@ -88,7 +110,17 @@
         height: stage_cfg.height,
         fill: 'rgba(0,0,0,0.2)'
     }
-    const circle_cfg = {
+
+    type CircleConfig = {
+        x: number,
+        y: number,
+        radius: number,
+        fill: string,
+        stroke: string,
+        strokeWidth: number,
+        draggable: boolean,
+    }
+    const circle_cfg: CircleConfig = {
         x: 100,
         y: 500,
         radius: 30,
