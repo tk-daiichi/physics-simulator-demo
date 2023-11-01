@@ -1,5 +1,5 @@
 <template>
-  <BallLauncher msg="uwaaa" />
+  <BallLauncher />
 </template>
 
 <script setup lang="ts">

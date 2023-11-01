@@ -1,184 +1,106 @@
 <template>
-  <div class="sim-body">
-      <canvas 
-          id="ca" ref="canvasRef"
-          class="ma-5"
-          :width=scaleX :height=scaleY 
-          @wheel = "zoomEvent"
-          @mousedown = "mouseStatus = 'mousedown'"
-          @mouseup   = "mouseStatus = 'mouseup'"
-          @mousemove="scrollGraph">
-      </canvas>
-  
-      <!-- <v-container id="graphInfo" class="mx-3 pa-0">
-          <v-container id="graph1" class="mb-lg-6">
-              <div class="text-h6">y=ax+b</div>
-              <v-sheet class="d-flex">
-                  <div id="paramA" class="mr-2">
-                      <label>a:
-                      <input 
-                          type="number" 
-                          class="paramInput"
-                          v-model="graph1a" 
-                          @keydown.enter="paramUpdate"
-                          @change="paramUpdate">
-                      </label>
-                  </div>
-                  <div id="paramB">
-                      <label>b:
-                      <input
-                          type="number"
-                          class="paramInput"
-                          v-model="graph1b" 
-                          @keydown.enter="paramUpdate"
-                          @change="paramUpdate">
-                      </label>
-                  </div>
-              </v-sheet>
-          </v-container>
-          <v-container id="graph2" class="mb-lg-6">
-              <div class="text-h6">y=a(x-b)<sup>2</sup>+c</div>
-              <v-sheet class="d-flex">
-                  <div id="paramA" class="mr-2">
-                      <label>a:
-                      <input
-                          type="number" 
-                          class="paramInput"
-                          v-model="graph2a" 
-                          @keydown.enter="paramUpdate"
-                          @change="paramUpdate">
-                      </label>
-                  </div>
-                  <div id="paramB" class="mr-2">
-                      <label>b:
-                      <input
-                          type="number" 
-                          class="paramInput"
-                          v-model="graph2b" 
-                          @keydown.enter="paramUpdate"
-                          @change="paramUpdate">
-                      </label>
-                  </div>
-                  <div id="paramC">
-                      <label>c:
-                      <input
-                          type="number" 
-                          class="paramInput"
-                          v-model="graph2c" 
-                          @keydown.enter="paramUpdate"
-                          @change="paramUpdate">
-                      </label>
-                  </div>
-              </v-sheet>
-          </v-container>
-      </v-container> -->
-  </div>
+    x:{{ posX }}, y:{{ posY }}
+    <!-- <div id="container"></div> -->
+    <div class="sim-body">
+        <v-stage :config="stage_cfg" ref="stage" class="stage">
+            <v-layer :config="layer_cfg" ref="back_layer"><v-rect :config="bgRect_cfg"/></v-layer>
+            <v-layer :config="layer_cfg" ref="cor_layer">
+                <!-- <v-line :config="coordinate_cfg"></v-line> -->
+            </v-layer>
+            <v-layer :config="layer_cfg" ref="ball_layer">
+                <v-circle 
+                    :config="circle_cfg" ref="circle">
+                </v-circle>
+            </v-layer>
+        </v-stage>
+    </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, reactive } from 'vue';
-  import { Origin } from '@/components/CoordinateDrawer';
-  import { clearGraph } from '@/components/GraphDrawer';
-//   import { clearGraph, graph1Draw, graph2Draw } from '@/components/GraphDrawer';
+    import { 
+        ref, 
+        onMounted, 
+    } from 'vue';
+    import Konva from 'konva'
 
-  const canvasRef = ref<HTMLCanvasElement>();
+    const stage = ref<Konva.Stage>()
+    const cor_layer = ref<Konva.Layer>()
+    const ball_layer = ref<Konva.Layer>()
+    const circle = ref<Konva.Circle>()
 
-  const windowWidth  = ref<number>(window.innerWidth);
-  const windowHeight = ref<number>(window.innerHeight)
-  const scaleX       = ref<number>(windowWidth.value * 0.9);
-  const scaleY       = ref<number>(windowHeight.value * 0.7);
-  const interval     = ref<number>(Math.max(scaleX.value, scaleY.value) * 0.1);
-  
-  if(windowWidth.value <= 400) { 
-      scaleY.value = windowHeight.value * 0.5;
-      interval.value = Math.max(scaleX.value, scaleY.value) * 0.2; 
-  }
-  let origin: Origin  = reactive({x: scaleX.value * 0.1, y: scaleY.value * 0.8});
-  
-  window.onresize = (() => {
-      new Promise ((resolve) => {
-          windowWidth.value   = window.innerWidth;
-          windowHeight.value  = window.innerHeight;
-          scaleX.value        = windowWidth.value * 0.9;
-          scaleY.value        = windowHeight.value * 0.6;
-          interval.value      = Math.max(scaleX.value, scaleY.value) * 0.1; 
-          origin = {x: windowWidth.value * 0.4, y: windowWidth.value * 0.4};
-          resolve("");
-      }).then(() => {
-          paramUpdate();
-      })
-  })
-  
-//   const graph1a = ref<number>(1);
-//   const graph1b = ref<number>(-2);
-//   const graph2a = ref<number>(2)
-//   const graph2b = ref<number>(1)
-//   const graph2c = ref<number>(-2)
+    const posX = ref<number>()
+    const posY = ref<number>()
+    onMounted(() => {
+        if(circle.value) {
+            // @ts-ignore
+            const circleNode = circle.value.getNode()
 
-  const paramUpdate = () => {
-      const ctx = canvasRef.value?.getContext("2d")
-      if(ctx){
-          clearGraph(ctx, scaleX.value, scaleY.value, interval.value, origin);
-        //   graph1Draw(ctx, scaleX.value, scaleY.value, interval.value, origin, graph1a.value, graph1b.value);
-        //   graph2Draw(ctx, scaleX.value, scaleY.value, interval.value, origin, graph2a.value, graph2b.value, graph2c.value);
-      }
-  }
+            let positionX = circle_cfg.x                    
+            let positionY = circle_cfg.y
 
-  onMounted(() => {
-      const ctx = canvasRef.value?.getContext("2d")
-      if(ctx){
-          paramUpdate();
-      }
-  });
+            const period: number = 3;
+            let velX = 10 / period;
+            let velY = velX;
 
-  const mouseStatus = ref<string>("")
-  const scrollGraph = ((ev: MouseEvent) => {
-      if (mouseStatus.value == "mousedown"){
-          origin.x += ev.movementX;
-          origin.y += ev.movementY;
-          const ctx = canvasRef.value?.getContext("2d")
-          if(ctx){
-              paramUpdate()
-          }
-      }
-  })
-  const zoomEvent = ((ev: WheelEvent) => {
-      ev.preventDefault();
-      interval.value += ev.deltaY * -0.1
+            let anim = new Konva.Animation(function(frame) {
+                if(frame){
+                    let borderXl = positionX - circle_cfg.radius + velX;
+                    let borderXr = positionX + circle_cfg.radius + velX;
+                    if(borderXl > 0 && borderXr < stage_cfg.width){
+                    } else if(borderXl <= 0){
+                        velX = frame.timeDiff / period;
+                    } else if (borderXr >= stage_cfg.width) {
+                        velX = -frame.timeDiff / period;
+                    };
+                    
+                    let borderYt = positionY - circle_cfg.radius + velY;
+                    let borderYb = positionY + circle_cfg.radius + velY;
+                    if(borderYt > 0 && borderYb < stage_cfg.height){
+                    } else if(borderYt <= 0){
+                        velY = frame.timeDiff / period;
+                    } else if (borderYb >= stage_cfg.height) {
+                        velY = -frame.timeDiff / period;
+                    };
 
-      interval.value = Math.min(Math.max(10,interval.value), 200)
-
-      const ctx = canvasRef.value?.getContext("2d")
-      if(ctx){
-          paramUpdate()
-      }
-  })
-
+                    positionX += velX;
+                    positionY += velY;
+                    circleNode.setX(positionX);
+                    circleNode.setY(positionY);
+                    posX.value = Math.round(positionX);
+                    posY.value = Math.round(positionY);
+                };
+            }, circleNode.getLayer());
+            anim.start();
+        }
+    })
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    const stage_cfg = { width: width*0.5, height: height*0.7 };
+    const layer_cfg = { 
+        x:0,
+        y:0,
+    }
+    const bgRect_cfg = {
+        x: 0,
+        y: 0,
+        width: stage_cfg.width,
+        height: stage_cfg.height,
+        fill: 'rgba(0,0,0,0.2)'
+    }
+    const circle_cfg = {
+        x: 100,
+        y: 500,
+        radius: 30,
+        fill: "rgba(100,200,120,0.2)",
+        stroke: "black",
+        strokeWidth: 1,
+        draggable: true,
+    }
 </script>
 
 <style>
-  .sim-body {
+    .sim-body {
       text-align: left;
-  }
-  #ca {
-      border: 2px solid black;
-      border-radius: 10px;
-  }
-  @media (min-width: 1100px) {
-      #ca {
-          max-width: 80vw;
-      }
-  }
-
-  #graphInfo {
-      font-size: 1.2em;
-      border: .05em solid #555;
-      max-width: 90vw;
-      max-height: 20em;
-  }
-  .paramInput{
-      width: 3em;
-      padding-left: .2em;
-      border: .05em solid #555;
-  }
+    }
 </style>
