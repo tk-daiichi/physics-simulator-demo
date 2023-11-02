@@ -1,5 +1,7 @@
 <template>
     <button @click="fire">発射！</button>
+    <label>再生速度：<input v-model="speedInput" type="range" min="1" max="10" @change="fire"/></label>
+    <label>初速度：<input v-model="velInput" @change="fire"/></label>
     <v-stage :config="stage_cfg">
         <BackGround></BackGround>
         <Coordinate></Coordinate>
@@ -14,8 +16,10 @@ import Coordinate from '@/components/Coordinate.vue';
 import Ball from '@/components/Ball.vue';
 import { stage_cfg } from '@/configs/stageConfig';
 import { ballLauncher } from '@/animFunctions/ballLauncher';
-import { bounceBall } from '@/animFunctions/bounceBall';
+// import { bounceBall } from '@/animFunctions/bounceBall';
 
+const velInput = ref<number>(1)
+const speedInput = ref<number>(5)
 const ballRef = ref<InstanceType<typeof Ball>>();
 onMounted(() => {
     fire();
@@ -23,9 +27,11 @@ onMounted(() => {
 
 function fire() {
     const ball = ballRef.value;
-    if(ball){
-        bounceBall(ball.ba2, stage_cfg, ball.ba2Cfg);
-        ballLauncher(ball.ba1, ball.ba1Cfg);
+    const speed = speedInput.value;
+    const velocity = velInput.value;
+    if(ball && speed && velocity){
+        // bounceBall(ball.ba2, stage_cfg, ball.ba2Cfg);
+        ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity);
     };
 };
 </script>
