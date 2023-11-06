@@ -10,24 +10,31 @@ export function ballLauncher(
 ){
     //@ts-ignore
     const shapenode = shape.getNode();
+    let velX = velocity * 10;
                 
     let anim = new Konva.Animation(function(frame){
         if(frame) {
             let time = frame.time * speed * 0.005;
-            let velX = velocity * 10;
-            const shapePositionX = circle_cfg.x + velX * time;
-            const shapePositionY = circle_cfg.y + 0.2 * 9.8 * time ** 2;
-            shapenode.setX(shapePositionX);
-            shapenode.setY(shapePositionY);
-            let circle = new Konva.Circle({
-                x: shapePositionX,
-                y: shapePositionY,
-                radius: 5,
-                fill: 'rgba(210,110,100,1)',
-                draggable: true,
+            let lastTime = (frame.time - frame.timeDiff) * speed * 0.005;
+            const positionX = (time:number): number => {
+                return circle_cfg.x + velX * time;
+            };
+            const positionY = (time:number): number => {
+                return circle_cfg.y + 0.2 * 9.8 * time ** 2
+            };
+            shapenode.setX(positionX(time));
+            shapenode.setY(positionY(time));
+            let line = new Konva.Line({
+                points: [
+                    positionX(lastTime), positionY(lastTime),
+                    positionX(time), positionY(time)
+                ],
+                stroke: `${circle_cfg.stroke}`,
+                strokeWidth: 3,
             });
             //@ts-ignore
-            shapenode.getLayer().add(circle);
+            shapenode.getLayer().add(line);
+
             if(shapenode.y() >= stage_cfg.height + circle_cfg.radius){
                 anim.stop()
             }
