@@ -1,12 +1,28 @@
 <template>
-    <button @click="fire">発射！</button>
-    <label>再生速度：<input v-model="speedInput" type="range" min="1" max="10" @change="fire"/></label>
-    <label>初速度：<input v-model="velInput" @change="fire"/></label>
-    <v-stage :config="stage_cfg">
-        <BackGround></BackGround>
-        <Coordinate></Coordinate>
-        <Ball ref="ballRef"></Ball>
-    </v-stage>
+    <div class="simBody">
+        <v-stage :config="stage_cfg">
+            <BackGround></BackGround>
+            <Coordinate></Coordinate>
+            <Ball ref="ballRef"></Ball>
+        </v-stage>
+        <div class="control">
+            <label>
+                再生速度：
+                <input 
+                    v-model="speedInput" 
+                    type="range" 
+                    min="1" max="10" 
+                    @change="fire"/>
+            </label>
+            <label>
+                初速度：
+                <input 
+                    v-model="velInput" 
+                    @change="fire"/>
+            </label>
+            <button @click="fire">発射！</button>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -37,5 +53,14 @@ function fire() {
 </script>
 
 <style>
-
+.simBody {
+    display: flex;
+}
+.control {
+    display: block;
+    /* justify-content: space-around; */
+    /* align-content: center; */
+    max-width: 600px;
+    margin: 1em;
+}
 </style>
