@@ -7,13 +7,14 @@
 
 <script setup lang="ts">
     import { ref } from 'vue';
-    import Konva from 'konva'
+    import Konva from 'konva';
+    import { origin } from '@/configs/origin'
 
     const ba1 = ref<Konva.Circle>();
     const ba2 = ref<Konva.Circle>();
     const ba1Cfg = {
-        x: 50,
-        y: 50,
+        x: origin.x,
+        y: origin.y,
         radius: 15,
         fill: "rgba(200,0,0,1)",
         stroke: "rgba(200,0,0,1)",
@@ -21,8 +22,8 @@
         draggable: true,
     }
     const ba2Cfg = {
-        x: 50,
-        y: 50,
+        x: origin.x,
+        y: origin.y,
         radius: 15,
         // fill: "rgba(0,0,255,1)",
         stroke: "black",

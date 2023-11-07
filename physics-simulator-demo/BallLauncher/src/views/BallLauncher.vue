@@ -2,7 +2,7 @@
     <div class="simBody">
         <v-stage :config="stage_cfg">
             <BackGround></BackGround>
-            <Coordinate></Coordinate>
+            <Coordinate v-model.number=intervalInput ></Coordinate>
             <Ball ref="ballRef"></Ball>
         </v-stage>
         <div class="control">
@@ -11,8 +11,16 @@
                 <input 
                     v-model="speedInput" 
                     type="range" 
-                    min="1" max="10" 
+                    min="0.1" max="10" 
                     @change="fire"/>
+            </label>
+            <label>
+                縮尺：
+                <input 
+                    v-model="intervalInput" 
+                    type="range"
+                    min="10" max="200"
+                    />
             </label>
             <label>
                 初速度：
@@ -34,8 +42,9 @@ import { stage_cfg } from '@/configs/stageConfig';
 import { ballLauncher } from '@/animFunctions/ballLauncher';
 // import { bounceBall } from '@/animFunctions/bounceBall';
 
-const velInput = ref<number>(1)
-const speedInput = ref<number>(5)
+const velInput = ref<number>(2)
+const speedInput = ref<number>(0.1)
+const intervalInput = ref<number>(50)
 const ballRef = ref<InstanceType<typeof Ball>>();
 onMounted(() => {
     fire();
@@ -45,9 +54,10 @@ function fire() {
     const ball = ballRef.value;
     const speed = speedInput.value;
     const velocity = velInput.value;
-    if(ball && speed && velocity){
+    const interval = intervalInput.value;
+    if(ball && speed && velocity && interval){
         // bounceBall(ball.ba2, stage_cfg, ball.ba2Cfg);
-        ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity);
+        ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity, interval);
     };
 };
 </script>
@@ -58,8 +68,6 @@ function fire() {
 }
 .control {
     display: block;
-    /* justify-content: space-around; */
-    /* align-content: center; */
     max-width: 600px;
     margin: 1em;
 }
