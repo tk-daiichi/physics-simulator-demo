@@ -33,14 +33,14 @@ import BackGround from '@/components/BackGround.vue';
 import Coordinate from '@/components/Coordinate.vue';
 import Ball from '@/components/Ball.vue';
 import { stage_cfg } from '@/configs/stageConfig';
-import { ballLauncher } from '@/animFunctions/ballLauncher';
+import { ballLauncher, ballTrack } from '@/animFunctions/ballLauncher';
 // import { bounceBall } from '@/animFunctions/bounceBall';
 
 const velInput = ref<number>(2)
 const speedInput = ref<number>(1)
 const intervalInput = ref<number>(50)
 const ballRef = ref<InstanceType<typeof Ball>>();
-
+    
 function fire() {
     const ball = ballRef.value;
     const speed = speedInput.value;
@@ -54,6 +54,15 @@ function fire() {
 function zoomEvent(ev: WheelEvent) {
     intervalInput.value += ev.deltaY * -0.1;
     intervalInput.value = Math.min(Math.max(1, intervalInput.value), 100);
+    const ball = ballRef.value;
+    const interval = intervalInput.value;
+    if(ball){
+        const configs = ball.configs;
+        configs.forEach((el) => {
+            configs.push(ballTrack(el.config, el.velocity, interval));
+            configs.splice(configs.indexOf(el), 1)
+        });
+    };
 };
 </script>
 
