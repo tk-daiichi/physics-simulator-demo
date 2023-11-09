@@ -14,13 +14,13 @@
                     v-model="speedInput" 
                     type="range" 
                     min="0.5" max="3" 
-                    @change="fire"/>
+                    />
             </label>
             <label>
                 初速度：
                 <input 
                     v-model="velInput" 
-                    @change="fire"/>
+                    />
             </label>
             <button @click="fire">発射！</button>
         </div>
@@ -34,7 +34,6 @@ import Coordinate from '@/components/Coordinate.vue';
 import Ball from '@/components/Ball.vue';
 import { stage_cfg } from '@/configs/stageConfig';
 import { ballLauncher, ballTrack } from '@/animFunctions/ballLauncher';
-// import { bounceBall } from '@/animFunctions/bounceBall';
 
 const velInput = ref<number>(2)
 const speedInput = ref<number>(1)
@@ -47,7 +46,6 @@ function fire() {
     const velocity = velInput.value;
     const interval = intervalInput.value;
     if(ball && speed && velocity && interval){
-        // bounceBall(ball.ba2, stage_cfg, ball.ba2Cfg);
         ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity, interval, ball.configs);
     };
 };

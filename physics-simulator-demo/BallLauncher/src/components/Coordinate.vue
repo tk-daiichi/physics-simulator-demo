@@ -1,11 +1,7 @@
 <template>
     <v-layer>
-        <div v-for="(line) in lines" :key="line">
-            <v-line :config="line"></v-line>
-        </div>
-        <div v-for="(text) in texts" :key="text">
-            <v-text :config="text"></v-text>
-        </div>
+        <v-line :config="line" v-for="(line) in lines"></v-line>
+        <v-text :config="text" v-for="(text) in texts"></v-text>
     </v-layer>
 </template>
 
