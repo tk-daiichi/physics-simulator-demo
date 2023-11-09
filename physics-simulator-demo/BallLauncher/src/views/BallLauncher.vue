@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref} from 'vue';
 import BackGround from '@/components/BackGround.vue';
 import Coordinate from '@/components/Coordinate.vue';
 import Ball from '@/components/Ball.vue';
@@ -43,12 +43,9 @@ import { ballLauncher } from '@/animFunctions/ballLauncher';
 // import { bounceBall } from '@/animFunctions/bounceBall';
 
 const velInput = ref<number>(2)
-const speedInput = ref<number>(0.1)
+const speedInput = ref<number>(1)
 const intervalInput = ref<number>(50)
 const ballRef = ref<InstanceType<typeof Ball>>();
-onMounted(() => {
-    fire();
-});
 
 function fire() {
     const ball = ballRef.value;
