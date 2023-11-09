@@ -1,10 +1,12 @@
 <template>
     <div class="simBody">
-        <v-stage :config="stage_cfg">
-            <BackGround></BackGround>
-            <Coordinate v-model.number=intervalInput ></Coordinate>
-            <Ball ref="ballRef"></Ball>
-        </v-stage>
+        <div @wheel="zoomEvent">
+            <v-stage :config="stage_cfg">
+                <BackGround></BackGround>
+                <Coordinate v-model.number=intervalInput ></Coordinate>
+                <Ball v-model="intervalInput" ref="ballRef"></Ball>
+            </v-stage>
+        </div>
         <div class="control">
             <label>
                 再生速度：
@@ -13,14 +15,6 @@
                     type="range" 
                     min="0.1" max="10" 
                     @change="fire"/>
-            </label>
-            <label>
-                縮尺：
-                <input 
-                    v-model="intervalInput" 
-                    type="range"
-                    min="10" max="200"
-                    />
             </label>
             <label>
                 初速度：
@@ -56,6 +50,10 @@ function fire() {
         // bounceBall(ball.ba2, stage_cfg, ball.ba2Cfg);
         ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity, interval, ball.configs);
     };
+};
+function zoomEvent(ev: WheelEvent) {
+    intervalInput.value += ev.deltaY * -0.1;
+    intervalInput.value = Math.min(Math.max(1, intervalInput.value), 100);
 };
 </script>
 
