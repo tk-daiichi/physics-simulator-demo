@@ -1,0 +1,29 @@
+{
+  "name": "balllauncher",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "konva": "^9.2.3",
+    "vue": "^3.3.4",
+    "vue-konva": "^3.0.2",
+    "vuetify": "^3.3.23"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "vue-tsc": "^1.8.5"
+  },
+  "volta": {
+    "node": "20.3.1",
+    "npm": "9.7.2"
+  }
+}
