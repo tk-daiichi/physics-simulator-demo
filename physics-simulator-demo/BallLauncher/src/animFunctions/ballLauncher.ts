@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { CircleConfig } from '@/configs/circleConfig';
 import { stage_cfg } from '@/configs/stageConfig';
-// import { GraphTrack } from '@/configs/track';
+import { GraphTrack } from '@/configs/track';
 
 export function ballLauncher(
     shape: Konva.Circle | undefined,
@@ -9,7 +9,7 @@ export function ballLauncher(
     speed: number,
     velocity: number,
     interval: number,
-    // configs: GraphTrack[]
+    configs: GraphTrack[]
 ){
     //@ts-ignore
     const shapenode = shape.getNode();
@@ -31,7 +31,7 @@ export function ballLauncher(
         };
     }, shapenode.getLayer());
     anim.start();
-    // configs.push(ballTrack(circle_cfg, velocity, interval));
+    configs.push(ballTrack(circle_cfg, velocity, interval));
 };
 export function ballTrack(
     circle_cfg: CircleConfig,

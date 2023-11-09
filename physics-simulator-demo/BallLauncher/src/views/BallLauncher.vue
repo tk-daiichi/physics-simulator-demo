@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref} from 'vue';
+import { ref } from 'vue';
 import BackGround from '@/components/BackGround.vue';
 import Coordinate from '@/components/Coordinate.vue';
 import Ball from '@/components/Ball.vue';
@@ -54,7 +54,7 @@ function fire() {
     const interval = intervalInput.value;
     if(ball && speed && velocity && interval){
         // bounceBall(ball.ba2, stage_cfg, ball.ba2Cfg);
-        ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity, interval);
+        ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity, interval, ball.configs);
     };
 };
 </script>
