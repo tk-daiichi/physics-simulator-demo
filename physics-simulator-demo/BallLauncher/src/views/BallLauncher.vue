@@ -13,7 +13,7 @@
                 <input 
                     v-model="speedInput" 
                     type="range" 
-                    min="0.1" max="10" 
+                    min="0.5" max="3" 
                     @change="fire"/>
             </label>
             <label>
@@ -38,7 +38,7 @@ import { ballLauncher, ballTrack } from '@/animFunctions/ballLauncher';
 
 const velInput = ref<number>(2)
 const speedInput = ref<number>(1)
-const intervalInput = ref<number>(50)
+const intervalInput = ref<number>(70)
 const ballRef = ref<InstanceType<typeof Ball>>();
     
 function fire() {
@@ -53,7 +53,7 @@ function fire() {
 };
 function zoomEvent(ev: WheelEvent) {
     intervalInput.value += ev.deltaY * -0.1;
-    intervalInput.value = Math.min(Math.max(1, intervalInput.value), 100);
+    intervalInput.value = Math.min(Math.max(10, intervalInput.value), 100);
     const ball = ballRef.value;
     const interval = intervalInput.value;
     if(ball){
