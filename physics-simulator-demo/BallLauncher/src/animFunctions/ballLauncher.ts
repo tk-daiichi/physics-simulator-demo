@@ -2,18 +2,17 @@ import Konva from 'konva';
 import { CircleConfig } from '@/configs/circleConfig';
 import { stage_cfg } from '@/configs/stageConfig';
 import { GraphTrack } from '@/configs/track';
+import { origin } from '@/configs/origin';
 
 export function ballLauncher(
-    shape: Konva.Circle | undefined,
     circle_cfg: CircleConfig,
     speed: number,
     velocity: number,
     interval: number,
+    layer: Konva.Layer,
     configs: GraphTrack[]
 ){
-    //@ts-ignore
-    const shapenode = shape.getNode();
-                
+    // const offset = {x:circle_cfg.x, y: circle_cfg.y}
     let anim = new Konva.Animation(function(frame){
         if(frame) {
             let time = frame.time * speed * 0.005;
@@ -23,14 +22,16 @@ export function ballLauncher(
             const positionY = (time:number): number => {
                 return circle_cfg.y + 0.5 * 9.8 * interval * time ** 2
             };
-            shapenode.setX(positionX(time));
-            shapenode.setY(positionY(time));
+            circle_cfg.x = positionX(time);
+            circle_cfg.y = positionY(time);
         };
-        if(shapenode.y() >= stage_cfg.height + circle_cfg.radius){
+        if(circle_cfg.y >= stage_cfg.height + circle_cfg.radius){
             anim.stop();
         };
-    }, shapenode.getLayer());
+    }, layer);
     anim.start();
+    circle_cfg.x = origin.x;
+    circle_cfg.y = origin.y;
     configs.push(ballTrack(circle_cfg, velocity, interval));
 };
 export function ballTrack(

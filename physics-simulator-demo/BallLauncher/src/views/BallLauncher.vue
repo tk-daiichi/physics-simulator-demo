@@ -45,8 +45,8 @@ function fire() {
     const speed = speedInput.value;
     const velocity = velInput.value;
     const interval = intervalInput.value;
-    if(ball && speed && velocity && interval){
-        ballLauncher(ball.ba1, ball.ba1Cfg, speed, velocity, interval, ball.configs);
+    if(ball && speed && velocity && interval && ball.baLayer){
+        ballLauncher(ball.ba1Cfg, speed, velocity, interval, ball.baLayer, ball.configs);
     };
 };
 function zoomEvent(ev: WheelEvent) {
