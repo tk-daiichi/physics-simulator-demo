@@ -10,6 +10,9 @@ import { drawScene } from "@/scripts/draw-scene";
 
 const canvas = ref<HTMLCanvasElement>();
 
+let squareRotation = 0.0;
+let deltaTime = 0;
+
 onMounted(() => {
     main();
 })
@@ -28,7 +31,6 @@ function main() {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-
         const vsSource = `
             attribute vec4 aVertexPosition;
             attribute vec4 aVertexColor;
@@ -43,8 +45,6 @@ function main() {
             vColor = aVertexColor;
             }
         `;
-
-
         const fsSource = `
             varying lowp vec4 vColor;
 
@@ -52,7 +52,9 @@ function main() {
             gl_FragColor = vColor;
             }
         `;
+
         const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
         if(shaderProgram != null){
             const programInfo = {
                 program: shaderProgram,
@@ -66,9 +68,19 @@ function main() {
                 },
             };
             const buffers = initBuffers(gl);
-            drawScene(gl, programInfo, buffers);
-        }
-
+            let then = 0;
+            function render(now:any) {
+                now *= 0.001;
+                deltaTime = now - then;
+                then = now;
+                if(gl){
+                    drawScene(gl, programInfo, buffers, squareRotation);
+                }
+                squareRotation += deltaTime;
+                requestAnimationFrame(render);
+            }
+            requestAnimationFrame(render);
+        };
     };
 };
 

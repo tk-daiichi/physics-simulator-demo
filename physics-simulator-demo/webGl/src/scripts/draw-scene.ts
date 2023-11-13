@@ -4,6 +4,7 @@ export function drawScene(
     gl: WebGLRenderingContext,
     programInfo: any,
     buffers: any,
+    squareRotation: number,
 ) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -27,6 +28,12 @@ export function drawScene(
         [-0.0, 0.0, -6.0],
     );
 
+    mat4.rotate(
+        modelViewMatrix,
+        modelViewMatrix,
+        squareRotation,
+        [1, 0, 1],
+    );
     setPositionAttribute(gl, buffers, programInfo);
     setColorAttribute(gl, buffers, programInfo);
 
