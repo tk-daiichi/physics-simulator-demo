@@ -28,22 +28,37 @@ function main() {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
+
         const vsSource = `
-        attribute vec4 aVertexPosition;
-        uniform mat4 uModelViewMatrix;
-        uniform mat4 uProjectionMatrix;
-        void main() {
+            attribute vec4 aVertexPosition;
+            attribute vec4 aVertexColor;
+
+            uniform mat4 uModelViewMatrix;
+            uniform mat4 uProjectionMatrix;
+
+            varying lowp vec4 vColor;
+
+            void main(void) {
             gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-        }`;
-        const fsSource = `void main() {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-        }`;
+            vColor = aVertexColor;
+            }
+        `;
+
+
+        const fsSource = `
+            varying lowp vec4 vColor;
+
+            void main(void) {
+            gl_FragColor = vColor;
+            }
+        `;
         const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
         if(shaderProgram != null){
             const programInfo = {
                 program: shaderProgram,
                 attribLocations: {
                     vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+                    vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
                 },
                 uniformLocations: {
                     projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
