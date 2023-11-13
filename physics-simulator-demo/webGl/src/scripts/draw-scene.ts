@@ -4,7 +4,7 @@ export function drawScene(
     gl: WebGLRenderingContext,
     programInfo: any,
     buffers: any,
-    squareRotation: number,
+    cubeRotation: number,
 ) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -31,12 +31,24 @@ export function drawScene(
     mat4.rotate(
         modelViewMatrix,
         modelViewMatrix,
-        squareRotation,
-        [1, 0, 1],
+        cubeRotation,
+        [0, 0, 1],
+    );
+    mat4.rotate(
+        modelViewMatrix,
+        modelViewMatrix,
+        cubeRotation * 0.7,
+        [0, 1, 0],
+    );
+    mat4.rotate(
+        modelViewMatrix,
+        modelViewMatrix,
+        cubeRotation * 0.3,
+        [1, 0, 0],
     );
     setPositionAttribute(gl, buffers, programInfo);
     setColorAttribute(gl, buffers, programInfo);
-
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
     gl.useProgram(programInfo.program);
 
     gl.uniformMatrix4fv(
@@ -50,9 +62,10 @@ export function drawScene(
         modelViewMatrix,
     );
     {
+        const vertexCount = 36
+        const type = gl.UNSIGNED_SHORT;
         const offset = 0;
-        const vertexCount = 4;
-        gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+        gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     }
 };
 
@@ -61,7 +74,7 @@ function setPositionAttribute(
     buffers: any,
     programInfo: any
 ) {
-    const numComponents = 2;
+    const numComponents = 3;
     const type = gl.FLOAT;
     const normalize = false;
     const stride = 0;

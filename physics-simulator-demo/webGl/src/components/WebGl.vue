@@ -10,7 +10,7 @@ import { drawScene } from "@/scripts/draw-scene";
 
 const canvas = ref<HTMLCanvasElement>();
 
-let squareRotation = 0.0;
+let cubeRotation = 0.0;
 let deltaTime = 0;
 
 onMounted(() => {
@@ -74,9 +74,9 @@ function main() {
                 deltaTime = now - then;
                 then = now;
                 if(gl){
-                    drawScene(gl, programInfo, buffers, squareRotation);
+                    drawScene(gl, programInfo, buffers, cubeRotation);
                 }
-                squareRotation += deltaTime;
+                cubeRotation += deltaTime;
                 requestAnimationFrame(render);
             }
             requestAnimationFrame(render);
