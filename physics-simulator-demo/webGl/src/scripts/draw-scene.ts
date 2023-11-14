@@ -47,11 +47,19 @@ export function drawScene(
         cubeRotation * 0.3,
         [1, 0, 0],
     );
+    const normalMatrix = mat4.create();
+    //modelViewMatrixの逆行列をnormalMatrixに代入？
+    mat4.invert(normalMatrix, modelViewMatrix); 
+    mat4.transpose(normalMatrix, normalMatrix);
+
     setPositionAttribute(gl, buffers, programInfo);
     setTextureAttribute(gl, buffers, programInfo);
+    
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-    gl.useProgram(programInfo.program);
 
+    setNormalAttribute(gl, buffers, programInfo);
+
+    gl.useProgram(programInfo.program);
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.projectionMatrix,
         false,
@@ -62,6 +70,12 @@ export function drawScene(
         false,
         modelViewMatrix,
     );
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.normalMatrix,
+        false,
+        normalMatrix
+    );
+
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
@@ -137,4 +151,25 @@ function setTextureAttribute(
       offset,
     );
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+};
+function setNormalAttribute(
+    gl: WebGLRenderingContext,
+    buffers: any,
+    programInfo: any
+) {
+    const numComponents = 3;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.vertexNormal,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset,
+    );
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal);
 };

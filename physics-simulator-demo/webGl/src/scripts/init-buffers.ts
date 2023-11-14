@@ -2,11 +2,13 @@ export function initBuffers(gl: WebGLRenderingContext) {
     const positionBuffer = initPositionBuffer(gl);
     const textureCoordBuffer = initTextureBuffer(gl);
     const indexBuffer = initIndexBuffer(gl);
+    const normalBuffer = initNormalBuffer(gl);
 
     return {
         position: positionBuffer,
         textureCoord: textureCoordBuffer,
         indices: indexBuffer,
+        normals: normalBuffer,
     };
 };
 
@@ -89,3 +91,21 @@ function initTextureBuffer(gl: WebGLRenderingContext) {
     );
     return textureCoordBuffer;
 };
+
+function initNormalBuffer(gl: WebGLRenderingContext) {
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+
+    const normals = [
+        0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+        0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0,
+        0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+        0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0,
+        1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+        -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, 0.0,        
+    ];
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+
+    return normalBuffer;
+}
