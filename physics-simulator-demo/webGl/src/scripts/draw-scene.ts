@@ -4,6 +4,7 @@ export function drawScene(
     gl: WebGLRenderingContext,
     programInfo: any,
     buffers: any,
+    texture: any,
     cubeRotation: number,
 ) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -47,7 +48,7 @@ export function drawScene(
         [1, 0, 0],
     );
     setPositionAttribute(gl, buffers, programInfo);
-    setColorAttribute(gl, buffers, programInfo);
+    setTextureAttribute(gl, buffers, programInfo);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
     gl.useProgram(programInfo.program);
 
@@ -61,6 +62,10 @@ export function drawScene(
         false,
         modelViewMatrix,
     );
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
+    
     {
         const vertexCount = 36
         const type = gl.UNSIGNED_SHORT;
@@ -91,24 +96,45 @@ function setPositionAttribute(
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 };
 
-function setColorAttribute(
+// function setColorAttribute(
+//     gl: WebGLRenderingContext,
+//     buffers: any,
+//     programInfo: any
+// ) {
+//     const numComponents = 4;
+//     const type = gl.FLOAT;
+//     const normalize = false;
+//     const stride = 0;
+//     const offset = 0;
+//     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+//     gl.vertexAttribPointer(
+//       programInfo.attribLocations.vertexColor,
+//       numComponents,
+//       type,
+//       normalize,
+//       stride,
+//       offset,
+//     );
+//     gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+// };
+function setTextureAttribute(
     gl: WebGLRenderingContext,
     buffers: any,
     programInfo: any
 ) {
-    const numComponents = 4;
+    const numComponents = 2;
     const type = gl.FLOAT;
     const normalize = false;
     const stride = 0;
     const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexColor,
+      programInfo.attribLocations.textureCoord,
       numComponents,
       type,
       normalize,
       stride,
       offset,
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+    gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
 };

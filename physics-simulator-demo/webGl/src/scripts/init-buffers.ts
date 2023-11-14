@@ -1,11 +1,11 @@
 export function initBuffers(gl: WebGLRenderingContext) {
     const positionBuffer = initPositionBuffer(gl);
-    const colorBuffer = initColorBuffer(gl);
+    const textureCoordBuffer = initTextureBuffer(gl);
     const indexBuffer = initIndexBuffer(gl);
 
     return {
         position: positionBuffer,
-        color: colorBuffer,
+        textureCoord: textureCoordBuffer,
         indices: indexBuffer,
     };
 };
@@ -31,26 +31,26 @@ function initPositionBuffer(gl: WebGLRenderingContext) {
     return positionBuffer;
 };
 
-function initColorBuffer(gl: WebGLRenderingContext) {
-    const colors = [
-        [1.0, 1.0, 1.0, 1.0], // 前面: 白
-        [1.0, 0.0, 0.0, 1.0], // 背面: 赤
-        [0.0, 1.0, 0.0, 1.0], // 上面: 緑
-        [0.0, 0.0, 1.0, 1.0], // 底面: 青
-        [1.0, 1.0, 0.0, 1.0], // 右側面: 黄
-        [1.0, 0.0, 1.0, 1.0], // 左側面: 紫
-    ]
-    let generatedColors: number[] = [];
-    for (let j=0; j<6; j++){
-        let c = colors[j];
-        generatedColors = generatedColors.concat(c,c,c,c);
-    };
-    const colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
+// function initColorBuffer(gl: WebGLRenderingContext) {
+//     const colors = [
+//         [1.0, 1.0, 1.0, 1.0], // 前面: 白
+//         [1.0, 0.0, 0.0, 1.0], // 背面: 赤
+//         [0.0, 1.0, 0.0, 1.0], // 上面: 緑
+//         [0.0, 0.0, 1.0, 1.0], // 底面: 青
+//         [1.0, 1.0, 0.0, 1.0], // 右側面: 黄
+//         [1.0, 0.0, 1.0, 1.0], // 左側面: 紫
+//     ]
+//     let generatedColors: number[] = [];
+//     for (let j=0; j<6; j++){
+//         let c = colors[j];
+//         generatedColors = generatedColors.concat(c,c,c,c);
+//     };
+//     const colorBuffer = gl.createBuffer();
+//     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+//     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
 
-    return colorBuffer;
-};
+//     return colorBuffer;
+// };
 
 function initIndexBuffer(gl: WebGLRenderingContext) {
     const indexBuffer = gl.createBuffer();
@@ -68,4 +68,24 @@ function initIndexBuffer(gl: WebGLRenderingContext) {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
     return indexBuffer;
-}
+};
+function initTextureBuffer(gl: WebGLRenderingContext) {
+    const textureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+
+    const textureCoordinates = [
+        0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+        0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+        0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+        0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+        0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+        0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+    ]
+
+    gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array(textureCoordinates),
+        gl.STATIC_DRAW,
+    );
+    return textureCoordBuffer;
+};
