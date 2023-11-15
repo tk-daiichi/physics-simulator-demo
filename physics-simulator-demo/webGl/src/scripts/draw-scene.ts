@@ -1,10 +1,12 @@
 import { mat4 } from "gl-matrix";
+import { MyProgramInfo } from "@/types/programInfo";
+import { MyBuffer } from "@/types/buffer";
 
 export function drawScene(
     gl: WebGLRenderingContext,
-    programInfo: any,
-    buffers: any,
-    texture: any,
+    programInfo: MyProgramInfo,
+    buffers: MyBuffer,
+    texture: WebGLShader | null,
     cubeRotation: number,
 ) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -90,8 +92,8 @@ export function drawScene(
 
 function setPositionAttribute(
     gl: WebGLRenderingContext,
-    buffers: any,
-    programInfo: any
+    buffers: MyBuffer,
+    programInfo: MyProgramInfo
 ) {
     const numComponents = 3;
     const type = gl.FLOAT;
@@ -133,8 +135,8 @@ function setPositionAttribute(
 // };
 function setTextureAttribute(
     gl: WebGLRenderingContext,
-    buffers: any,
-    programInfo: any
+    buffers: MyBuffer,
+    programInfo: MyProgramInfo
 ) {
     const numComponents = 2;
     const type = gl.FLOAT;
@@ -154,8 +156,8 @@ function setTextureAttribute(
 };
 function setNormalAttribute(
     gl: WebGLRenderingContext,
-    buffers: any,
-    programInfo: any
+    buffers: MyBuffer,
+    programInfo: MyProgramInfo
 ) {
     const numComponents = 3;
     const type = gl.FLOAT;

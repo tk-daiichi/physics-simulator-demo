@@ -1,4 +1,7 @@
-export function initBuffers(gl: WebGLRenderingContext) {
+import { MyBuffer } from "@/types/buffer";
+export function initBuffers(
+    gl: WebGLRenderingContext
+): MyBuffer {
     const positionBuffer = initPositionBuffer(gl);
     const textureCoordBuffer = initTextureBuffer(gl);
     const indexBuffer = initIndexBuffer(gl);

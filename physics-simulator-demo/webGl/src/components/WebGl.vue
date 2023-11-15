@@ -92,7 +92,7 @@ function main() {
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
             let then = 0;
-            function render(now:any) {
+            function render(now: number) {
                 now *= 0.001;
                 deltaTime = now - then;
                 then = now;
@@ -109,8 +109,8 @@ function main() {
 
 function initShaderProgram (
     gl: WebGLRenderingContext,
-    vsSource: any,
-    fsSource: any
+    vsSource: string,
+    fsSource: string
 ): WebGLProgram | null {
     const vertexShader   = loadShader(gl, gl.VERTEX_SHADER, vsSource);
     const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
@@ -135,8 +135,8 @@ function initShaderProgram (
 
 function loadShader(
     gl: WebGLRenderingContext, 
-    type: any, 
-    source: any,
+    type: number, 
+    source: string,
 ): WebGLShader | null {
     const shader = gl.createShader(type);
     if(shader){
@@ -153,7 +153,7 @@ function loadShader(
 };
 function loadTexture(
     gl: WebGLRenderingContext, 
-    url: any,
+    url: string,
 ): WebGLShader | null {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -197,7 +197,7 @@ function loadTexture(
 
     return texture;
 };
-function isPowerOf2(value: any) {
+function isPowerOf2(value: number) {
     return (value & (value - 1)) === 0;
 }
 </script>
