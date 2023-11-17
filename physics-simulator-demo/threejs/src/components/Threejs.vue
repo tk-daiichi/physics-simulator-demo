@@ -73,7 +73,7 @@ const init = () => {
         )
         container.value.addEventListener(
             "contextmenu",
-            (ev) => ballLauncher(ev, container, scene, camera, animate)
+            (ev) => ballLauncher(ev, container.value, scene, camera, animate)
         )
         window.addEventListener(
             "resize", 

@@ -1,7 +1,10 @@
+import { Scene } from "three";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+
+
 export const fileLoader = async (
     target: EventTarget | null, 
-    scene: any
+    scene: Scene
 ) => {
     if(target instanceof HTMLInputElement && target.files) {
         const file = target.files[0];

@@ -1,7 +1,9 @@
+import { PerspectiveCamera, WebGLRenderer } from "three";
+
 export const onResize = ((
-    container: any,
-    camera: any,
-    renderer: any,
+    container: HTMLElement,
+    camera: PerspectiveCamera,
+    renderer: WebGLRenderer,
 ) => {
     if(container instanceof HTMLElement) {
         const { clientWidth, clientHeight } = container;

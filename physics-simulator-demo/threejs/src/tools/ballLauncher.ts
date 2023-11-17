@@ -7,20 +7,20 @@ import {
     AnimationMixer,
     Clock,
     LoopOnce,
+    Scene,
+    PerspectiveCamera,
 } from "three";
 
 
 export const ballLauncher = (
     ev: MouseEvent,
-    // clientX: number, 
-    // clientY: number,
-    container: any,
-    scene: any,
-    camera: any,
-    animate: any,
+    container: HTMLElement,
+    scene: Scene,
+    camera: PerspectiveCamera,
+    animate: (callback?: () => void) => void,
 ) => {
-    if(container.value instanceof HTMLElement){
-        const { clientWidth, clientHeight } = container.value;
+    if(container instanceof HTMLElement){
+        const { clientWidth, clientHeight } = container;
         const { clientX, clientY } = ev;
         const relativeX = (clientX - clientWidth / 2) / clientWidth;
         const relativeY = (clientY - clientHeight / 2) / clientHeight;
@@ -32,7 +32,7 @@ export const ballLauncher = (
 };
 
 export const setObjectInitialPosition = (
-    camera: any,
+    camera: PerspectiveCamera,
     position: Vector3,
     { relativeX, relativeY }: { relativeX: number; relativeY: number},
 ) => {
@@ -49,10 +49,10 @@ export const setObjectInitialPosition = (
     position.copy(camera.position).add(left).add(top).add(forward);
 };
 export const moveObject = (
-    object: Mesh, 
-    scene: any, 
-    camera: any,
-    animate: any,
+    object: Mesh,
+    scene: Scene, 
+    camera: PerspectiveCamera,
+    animate: (callback?: () => void) => void,
 ) => {
     const startPosition = object.position;
     const { x, y, z } = startPosition;
