@@ -24,6 +24,11 @@ import {
     BoxGeometry,
     Color,
     Vector3,
+VectorKeyframeTrack,
+AnimationClip,
+AnimationMixer,
+LoopOnce,
+Clock,
 } from "three";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
@@ -63,7 +68,7 @@ export default defineComponent({
 
                 camera.aspect = clientWidth / clientHeight;
                 camera.updateProjectionMatrix();
-                camera.position.set(10, 10, 10);
+                camera.position.set(30, 30, 30);
                 camera.lookAt(0, 0, 0);
 
                 renderer.setSize(clientWidth, clientHeight);
@@ -72,7 +77,6 @@ export default defineComponent({
                 container.value.appendChild(renderer.domElement);
 
                 animate();
-                // renderer.render(scene, camera);
                 controls.enablePan = false;
             }
         };
@@ -87,10 +91,13 @@ export default defineComponent({
             const material = new MeshPhongMaterial({color: 0x00ffaa});
             return new Mesh(geometry, material);
         };
-        const animate = () => {
+        const animate = (callback?: () => void) => {
             const frame = () => {
                 controls.update();
 
+                if(callback){
+                    callback();
+                }
                 renderer.render(scene, camera);
                 requestAnimationFrame(frame);
             };
@@ -113,7 +120,8 @@ export default defineComponent({
                 const relativeY = (clientY - clientHeight / 2) / clientHeight;
                 const ball = createSphere();
                 scene.add(ball);
-                setObjectInitialPosition(ball.position, {relativeX, relativeY})
+                setObjectInitialPosition(ball.position, {relativeX, relativeY});
+                moveObject(ball);
             };
         };
         const setObjectInitialPosition = (
@@ -131,6 +139,34 @@ export default defineComponent({
             const top = up.clone().multiplyScalar(relativeY * camera.getFilmHeight());
             forward.multiplyScalar(camera.near);
             position.copy(camera.position).add(left).add(top).add(forward);
+        };
+        const moveObject = (object: Mesh) => {
+            const startPosition = object.position;
+            const { x, y, z } = startPosition;
+            const endPosition = new Vector3();
+            camera.getWorldDirection(endPosition);
+            endPosition.multiplyScalar(camera.far).add(startPosition);
+
+            const positionKF = new VectorKeyframeTrack(
+                ".position",
+                [0, 10],
+                [x, y, z, endPosition.x, endPosition.y, endPosition.z]
+            );
+            const moveObjectClip = new AnimationClip(
+                `move-object-${object.id}`,
+                -1,
+                [positionKF]
+            );
+            const mixer = new AnimationMixer(object);
+            mixer.addEventListener("finished", () => {
+                scene.remove(object);
+                object.geometry.dispose();
+            });
+            const action = mixer.clipAction(moveObjectClip);
+            action.setLoop(LoopOnce, 0);
+            action.play();
+            const clock = new Clock();
+            animate(() => mixer.update(clock.getDelta()));
         };
         onMounted(() => {
             init();
