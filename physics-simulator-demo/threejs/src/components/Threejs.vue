@@ -1,20 +1,32 @@
 <template>
-    <div ref="container" class="container"></div>
+    <div>
+        <label for="file">choose file</label>
+        <input id="file" type="file" @input="onFileInput"/>
+    </div>
+    <div ref="container" class="container" @contextmenu="onContextMenu"></div>
 </template>
   
 <script lang="ts">
 import { defineComponent, onMounted, ref } from "vue";
 import { 
-    AmbientLight,
     GridHelper, 
     Mesh, 
     MeshLambertMaterial, 
     PerspectiveCamera, 
     PointLight, 
-    Scene, 
+    AmbientLight,
+    PointLightHelper,
+    Scene,
     SphereGeometry, 
-    WebGLRenderer 
+    WebGLRenderer, 
+    // DirectionalLight,
+    MeshPhongMaterial,
+    BoxGeometry,
+    Color,
+    Vector3,
 } from "three";
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 export default defineComponent({
     setup() {
@@ -22,26 +34,36 @@ export default defineComponent({
         const scene = new Scene();
         const camera = new PerspectiveCamera();
         const renderer = new WebGLRenderer();
-        const light = new PointLight(0xffffff, 1000.0, 0);
+        const light = new PointLight(0xffffff, 1000, 100);
+        const lightHelper = new PointLightHelper(light, 3)
         const ambientLight = new AmbientLight();
+        const controls = new OrbitControls(camera, renderer.domElement);
 
         const init = () => {
             if(container.value instanceof HTMLElement){
-                const clientWidth = 1000; 
-                const clientHeight = 800;
+                // const clientWidth = 500; 
+                // const clientHeight = 300;
+                const { clientWidth, clientHeight } = container.value
+                console.log(container.value.clientWidth, container.value.clientHeight)
 
-                scene.add(new GridHelper());
+                scene.add(new GridHelper(50));
+                scene.background = new Color(0xcccccc);
 
-                light.position.set(10, 10, 0);
+                light.position.set(5, 5, 5);
                 scene.add(light);
                 scene.add(ambientLight);
+                scene.add(lightHelper);
 
                 const sphere = createSphere();
                 scene.add(sphere);
+                
+                const cube = createCube();
+                cube.position.x = 5;
+                scene.add(cube);
 
                 camera.aspect = clientWidth / clientHeight;
                 camera.updateProjectionMatrix();
-                camera.position.set(10, 10, 0);
+                camera.position.set(10, 10, 10);
                 camera.lookAt(0, 0, 0);
 
                 renderer.setSize(clientWidth, clientHeight);
@@ -51,6 +73,7 @@ export default defineComponent({
 
                 animate();
                 // renderer.render(scene, camera);
+                controls.enablePan = false;
             }
         };
 
@@ -59,13 +82,14 @@ export default defineComponent({
             const material = new MeshLambertMaterial({color: 0x550000});
             return new Mesh(geometry, material);
         };
-        
+        const createCube = (): Mesh => {
+            const geometry = new BoxGeometry(1,1,1);
+            const material = new MeshPhongMaterial({color: 0x00ffaa});
+            return new Mesh(geometry, material);
+        };
         const animate = () => {
-            let phi = 0;
             const frame = () => {
-                phi += 0.003 * Math.PI;
-                camera.position.set(10 * Math.cos(phi), 10, 10 * Math.sin(phi));
-                camera.lookAt(0,0,0)
+                controls.update();
 
                 renderer.render(scene, camera);
                 requestAnimationFrame(frame);
@@ -73,12 +97,49 @@ export default defineComponent({
             frame();
         };
 
+        const onFileInput = async ({target}: Event) => {
+            if(target instanceof HTMLInputElement && target.files) {
+                const file = target.files[0];
+                const dataURL = URL.createObjectURL(file);
+                const loader = new FBXLoader();
+                const group = await loader.loadAsync(dataURL);
+                scene.add(group);
+            }   
+        };
+        const onContextMenu = ({ clientX, clientY }: MouseEvent) => {
+            if(container.value instanceof HTMLElement){
+                const { clientWidth, clientHeight } = container.value;
+                const relativeX = (clientX - clientWidth / 2) / clientWidth;
+                const relativeY = (clientY - clientHeight / 2) / clientHeight;
+                const ball = createSphere();
+                scene.add(ball);
+                setObjectInitialPosition(ball.position, {relativeX, relativeY})
+            };
+        };
+        const setObjectInitialPosition = (
+            position: Vector3,
+            { relativeX, relativeY }: { relativeX: number; relativeY: number},
+        ) => {
+            const forward = new Vector3();
+            camera.getWorldDirection(forward);
+            forward.normalize();
+
+            const { up } = camera;
+            const left = up.clone().cross(forward);
+
+            left.multiplyScalar(relativeX * camera.getFilmWidth());
+            const top = up.clone().multiplyScalar(relativeY * camera.getFilmHeight());
+            forward.multiplyScalar(camera.near);
+            position.copy(camera.position).add(left).add(top).add(forward);
+        };
         onMounted(() => {
             init();
         });
 
         return {
             container,
+            onFileInput,
+            onContextMenu,
         };
     },
 });
@@ -86,4 +147,13 @@ export default defineComponent({
 
 
 <style>
+#app {
+    padding: 0;
+}
+.container {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
 </style>
