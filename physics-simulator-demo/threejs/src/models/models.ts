@@ -6,7 +6,7 @@ import {
     BoxGeometry,
 } from 'three';
 export const createSphere = (): Mesh => {
-    const geometry = new SphereGeometry(3);
+    const geometry = new SphereGeometry(1);
     const material = new MeshLambertMaterial({color: 0x550000});
     return new Mesh(geometry, material);
 };

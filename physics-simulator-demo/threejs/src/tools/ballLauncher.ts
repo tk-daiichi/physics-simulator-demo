@@ -9,6 +9,8 @@ import {
     LoopOnce,
     Scene,
     PerspectiveCamera,
+    Raycaster,
+    Object3D,
 } from "three";
 
 
@@ -17,17 +19,18 @@ export const ballLauncher = (
     container: HTMLElement,
     scene: Scene,
     camera: PerspectiveCamera,
+    objects: Object3D[],
     animate: (callback?: () => void) => void,
-) => {
-    if(container instanceof HTMLElement){
+): void => {
+    if (container instanceof HTMLElement){
         const { clientWidth, clientHeight } = container;
         const { clientX, clientY } = ev;
-        const relativeX = (clientX - clientWidth / 2) / clientWidth;
-        const relativeY = (clientY - clientHeight / 2) / clientHeight;
+        const relativeX = (clientWidth / 2 - clientX) / clientWidth;
+        const relativeY = (clientHeight / 2 - clientY) / clientHeight;
         const ball = createSphere();
         scene.add(ball);
         setObjectInitialPosition(camera, ball.position, {relativeX, relativeY});
-        moveObject(ball, scene, camera, animate);
+        moveObject(ball, scene, camera, objects, animate);
     };
 };
 
@@ -35,7 +38,7 @@ export const setObjectInitialPosition = (
     camera: PerspectiveCamera,
     position: Vector3,
     { relativeX, relativeY }: { relativeX: number; relativeY: number},
-) => {
+): void => {
     const forward = new Vector3();
     camera.getWorldDirection(forward);
     forward.normalize();
@@ -52,19 +55,14 @@ export const moveObject = (
     object: Mesh,
     scene: Scene, 
     camera: PerspectiveCamera,
+    objects: Object3D[],
     animate: (callback?: () => void) => void,
-) => {
+): void => {
     const startPosition = object.position;
-    const { x, y, z } = startPosition;
     const endPosition = new Vector3();
     camera.getWorldDirection(endPosition);
     endPosition.multiplyScalar(camera.far).add(startPosition);
-
-    const positionKF = new VectorKeyframeTrack(
-        ".position",
-        [0, 10],
-        [x, y, z, endPosition.x, endPosition.y, endPosition.z]
-    );
+    const positionKF = getPositionKeyFrame(startPosition, endPosition, 10, objects)
     const moveObjectClip = new AnimationClip(
         `move-object-${object.id}`,
         -1,
@@ -80,4 +78,37 @@ export const moveObject = (
     action.play();
     const clock = new Clock();
     animate(() => mixer.update(clock.getDelta()));
+};
+export const getPositionKeyFrame = (
+    startPosition: Vector3,
+    endPosition: Vector3,
+    duration: number,
+    objects: Object3D[],
+): VectorKeyframeTrack => {
+    const times = [0];
+    const { x, y, z } = startPosition;
+    const values = [ x, y, z ];
+    const direction = endPosition
+        .clone()
+        .add(startPosition.clone().multiplyScalar(-1))
+        .normalize();
+    const raycaster = new Raycaster();
+    raycaster.set(startPosition, direction);
+    
+    const intersects = raycaster.intersectObjects(objects, true);
+    if(intersects.length > 0){
+        const intersect = intersects[0];
+        const { distance } = intersect;
+        const intersectPosition = startPosition.clone().add(direction.multiplyScalar(distance));
+        const { x, y, z } = intersectPosition;
+        values.splice(values.length, 0, x, y, z, x, y, z);
+        console.log(values)
+        const rate = distance / startPosition.distanceTo(endPosition);
+        times.push(duration * rate);
+    } else {
+        const { x, y, z }  = endPosition;
+        values.splice(values.length, 0, x, y, z);
+    }
+    times.push(duration);
+    return new VectorKeyframeTrack(".position", times, values);
 };
