@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { createSphere, createCube } from "@/models/models"
-import { fileLoader } from "@/tools/fileLoader"
+import { onFileInput } from "@/tools/fileLoader"
 import { ballLauncher } from "@/tools/ballLauncher"
 import { onResize } from "@/tools/resize"
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -22,6 +22,7 @@ import {
     Scene,
     WebGLRenderer,
     Color,
+    Object3D,
 } from "three";
 
 const container = ref();
@@ -32,6 +33,7 @@ const light = new PointLight(0xffffff, 1000, 100);
 const lightHelper = new PointLightHelper(light, 3)
 const ambientLight = new AmbientLight();
 const controls = new OrbitControls(camera, renderer.domElement);
+const objects: Object3D[] = []
 
 const init = () => {
     if(container.value instanceof HTMLElement){
@@ -69,11 +71,11 @@ const init = () => {
         const input = document.getElementById("file");
         input?.addEventListener(
             "input",
-            ({target}: Event) => fileLoader(target, scene)
+            ({target}: Event) => onFileInput(target, scene, objects)
         )
         container.value.addEventListener(
             "contextmenu",
-            (ev) => ballLauncher(ev, container.value, scene, camera, animate)
+            (ev) => ballLauncher(ev, container.value, scene, camera, objects, animate)
         )
         window.addEventListener(
             "resize", 
