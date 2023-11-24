@@ -7,6 +7,7 @@
 import { ref, onMounted } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
@@ -21,6 +22,13 @@ const renderer = new THREE.WebGLRenderer();
 const controls = new OrbitControls(camera, renderer.domElement);
 const ambientLight = new THREE.AmbientLight(0xffffff, 3);
 const origin = new THREE.Vector3(0,0,0);
+const gui = new GUI({
+    container: container.value, width:320
+});
+const props = {
+    time: 0.01,
+}
+gui.add(props, "time", 0, 5, 0.01)
 
 onMounted(() => {
     init();
