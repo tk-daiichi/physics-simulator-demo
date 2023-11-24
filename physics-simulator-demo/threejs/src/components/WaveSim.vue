@@ -15,13 +15,11 @@ const camera = new THREE.PerspectiveCamera(
     window.innerWidth / window.innerHeight,
     0.1, 1000
 );
-camera.position.set(4, 4, 4);
+camera.position.set(7, 6, 6);
 camera.lookAt(4, 0, 0);
 const renderer = new THREE.WebGLRenderer();
 const controls = new OrbitControls(camera, renderer.domElement);
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-const light = new THREE.PointLight(0xffffff, 50);
-const lightHelper = new THREE.PointLightHelper(light, 0.4);
+const ambientLight = new THREE.AmbientLight(0xffffff, 3);
 const origin = new THREE.Vector3(0,0,0);
 
 onMounted(() => {
@@ -49,65 +47,91 @@ function init(){
 
     const graph = graphDrawer();
     scene.add(graph);
-    // graphTrace();
+    moveGraph(graph);
 
-    light.position.set(3, 2, 3)
-    light.castShadow = true;
-    light.shadow.mapSize.width = 1024;
-    light.shadow.mapSize.height = 1024;
-    scene.add(light); 
+    for(let z = 0; z <= 5; z += 0.25){
+        const trace = graphTrace(z);
+        trace.forEach((el) => {
+            scene.add(el);
+        });
+    };
+
     scene.add(ambientLight);
-    scene.add(lightHelper);
 };
-function animate(){
-    controls.update();
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
- };
+function animate(callback? : () => void){
+    const frame = (() => {
+        controls.update();
+        if(callback){
+            callback();
+        }
+        requestAnimationFrame(frame);
+        renderer.render(scene, camera);
+    });
+    frame();
+};
 animate();
 
-const z = 0;
-function sinCurve(x: number) {
-    return Math.sin((x-z)*2);
-};
+// function sinCurve(x: number) {
+//     return Math.sin((x-z)*2);
+// };
 
 function graphDrawer() {
     const geometry = new THREE.BufferGeometry();
     const points = [];
-    for(let i = 0; i < 5; i += 0.1){
+    const z = 0;
+    for(let i = -5; i < 5; i += 0.1){
         points.push(new THREE.Vector3(i, Math.sin((i-z)*2), z))
     };
     geometry.setFromPoints(points);
     const material = new THREE.MeshBasicMaterial({color: 0xffff00});
-    const graph = new THREE.Line(geometry, material );
-    graphTrace();
+    const graph = new THREE.Line(geometry, material);
     return graph
 };
-function graphTrace() {
+function graphTrace(z: number) {
     const color = new THREE.Color("rgb(200,100,100)");
-    
-    for(let i=0; i<4; i++){
+    const trace: THREE.Mesh[] = [];
+    for(let i=-4; i<4; i++){
         const shape = new THREE.Shape();
-        shape.moveTo(Math.PI * 0.5 * (i), 0);
-        const waveA = i % 2 == 0 ? 1 : -1;
+        const waveA = i % 2 == 0 ? 1/2 : -1/2;
+        shape.moveTo(Math.PI * 0.25 * (i * 2) + z, 0);
         const points: THREE.Vector2[] = [
-            new THREE.Vector2(Math.PI * 0.25 * (i * 2 + 1), waveA),
-            new THREE.Vector2(Math.PI * 0.25 * ((i + 1) * 2), 0),
-        ]
+                new THREE.Vector2(Math.PI * 0.25 * (i * 2 + 1) + z, waveA),
+                new THREE.Vector2(Math.PI * 0.25 * ((i + 1) * 2) + z, 0),
+        ];
         shape.splineThru(points);
         const geometry = new THREE.ShapeGeometry(shape);
         const material = new THREE.MeshPhongMaterial({
             transparent: true,
             opacity: 0.5,
             color: color,
+            side: THREE.DoubleSide,
         });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.z = 0;
-        scene.add(mesh);
-    }
+        mesh.position.z = z;
+        trace.push(mesh);
+    };
+    return trace;
 };
 
- 
+function moveGraph(object: THREE.Line | THREE.Mesh) {
+    const value = [0, 0, 0, 5, 0, 5];
+    const positionKF = new THREE.VectorKeyframeTrack(".position", [0, 2], value);
+    const moveObjectClip = new THREE.AnimationClip(
+        `move-object`,
+        -1,
+        [positionKF]
+    );
+    const mixer = new THREE.AnimationMixer(object);
+    mixer.addEventListener("finished", () => {
+        scene.remove(object);
+        object.geometry.dispose();
+    });
+    const action = mixer.clipAction(moveObjectClip);
+    action.setLoop(THREE.LoopOnce, 0)
+    action.play();
+    const clock = new THREE.Clock();
+    animate(() => mixer.update(clock.getDelta()));
+};
 function createAxis(x:number, y:number, z:number): THREE.ArrowHelper {
     const direction = new THREE.Vector3(x, y, z);
     return new THREE.ArrowHelper(direction, origin, 7);
