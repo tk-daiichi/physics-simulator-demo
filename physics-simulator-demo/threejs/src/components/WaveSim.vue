@@ -15,8 +15,8 @@ const camera = new THREE.PerspectiveCamera(
     window.innerWidth / window.innerHeight,
     0.1, 1000
 );
-camera.position.set(10, 10, 10);
-camera.lookAt(0, 0, 0);
+camera.position.set(4, 4, 4);
+camera.lookAt(4, 0, 0);
 const renderer = new THREE.WebGLRenderer();
 const controls = new OrbitControls(camera, renderer.domElement);
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
@@ -32,7 +32,6 @@ function init(){
     scene.add(camera);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearAlpha
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.value?.appendChild(renderer.domElement);
@@ -67,35 +66,47 @@ function animate(){
  };
 animate();
 
+const z = 0;
+function sinCurve(x: number) {
+    return Math.sin((x-z)*2);
+};
+
 function graphDrawer() {
     const geometry = new THREE.BufferGeometry();
-    const z = 5;
     const points = [];
     for(let i = 0; i < 5; i += 0.1){
-        points.push(new THREE.Vector3(i,Math.sin((i-z)*2)/2,z))
+        points.push(new THREE.Vector3(i, Math.sin((i-z)*2), z))
     };
     geometry.setFromPoints(points);
     const material = new THREE.MeshBasicMaterial({color: 0xffff00});
     const graph = new THREE.Line(geometry, material );
-    graphTrace(z);
+    graphTrace();
     return graph
 };
-function graphTrace(z:number) {
-    const path = new THREE.Path();
+function graphTrace() {
     const color = new THREE.Color("rgb(200,100,100)");
-    const material = new THREE.LineDashedMaterial({color: color})
-    for(let j = 0; j < z; j+=0.5){
-        for(let i = 0; i < 5; i += 0.1){
-            path.lineTo(i, Math.sin((i-j)*2)/2);
-            path.lineTo(i, 0);
-        };
-        const points = path.getPoints();
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const graph = new THREE.Line(geometry, material);
-        graph.position.z = j;
-        scene.add(graph);
-    };
-}
+    
+    for(let i=0; i<4; i++){
+        const shape = new THREE.Shape();
+        shape.moveTo(Math.PI * 0.5 * (i), 0);
+        const waveA = i % 2 == 0 ? 1 : -1;
+        const points: THREE.Vector2[] = [
+            new THREE.Vector2(Math.PI * 0.25 * (i * 2 + 1), waveA),
+            new THREE.Vector2(Math.PI * 0.25 * ((i + 1) * 2), 0),
+        ]
+        shape.splineThru(points);
+        const geometry = new THREE.ShapeGeometry(shape);
+        const material = new THREE.MeshPhongMaterial({
+            transparent: true,
+            opacity: 0.5,
+            color: color,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.z = 0;
+        scene.add(mesh);
+    }
+};
+
  
 function createAxis(x:number, y:number, z:number): THREE.ArrowHelper {
     const direction = new THREE.Vector3(x, y, z);
