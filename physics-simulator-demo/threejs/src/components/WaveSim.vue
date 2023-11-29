@@ -23,6 +23,8 @@ const props = {
     maxTime: 5,
     unit: 0.25,
     gridSize: 5,
+    俯瞰: function() {camera.position.set(4, 8, 7)},
+    ytグラフ: function() {camera.position.set(-4, 0.5, 1)}
 }
 function initGui() {
     const gui = new GUI({container: container.value, width: 320});
@@ -45,6 +47,8 @@ function initGui() {
     })
     gui.add(props, "maxTime", 0.5, 5, 0.01)
     gui.add(props, "unit"   , 0  , 1, 0.01)
+    gui.add(props, "俯瞰")
+    gui.add(props, "ytグラフ")
 }
 initGui();
 
@@ -52,7 +56,6 @@ function init(){
     initCoordinate();
 
     camera.position.set(4, 8, 7); //俯瞰
-    // camera.position.set(-4, 2, 4); //y-z
     camera.lookAt(0, 0, 3);
     scene.add(camera);
 
