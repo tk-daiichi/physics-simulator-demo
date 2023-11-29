@@ -11,35 +11,30 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-    75, 
-    window.innerWidth / window.innerHeight,
-    0.1, 1000
-);
+const aspect = window.innerWidth / window.innerHeight;
+const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 const ambientLight = new THREE.AmbientLight(0xffffff, 3);
 const origin = new THREE.Vector3(0,0,0);
-
 const controls = new OrbitControls(camera, renderer.domElement);
-const gui = new GUI({
-    container: container.value, width: 320
-});
 const props = {
     time: 0.01,
     maxTime: 5,
-    unit: 0.3,
+    unit: 0.25,
     gridSize: 5,
 }
-gui.add(props, "time"   , 0  , 5, 0.01)
-gui.add(props, "maxTime", 0.5, 5, 0.01)
-gui.add(props, "unit"   , 0  , 1, 0.01)
-
-onMounted(() => {
-    init();
-});
+function initGui() {
+    const gui = new GUI({container: container.value, width: 320});
+    gui.add(props, "time"   , 0  , 5, 0.01)
+    gui.add(props, "maxTime", 0.5, 5, 0.01)
+    gui.add(props, "unit"   , 0  , 1, 0.01)
+}
+initGui();
 
 function init(){
-    camera.position.set(-4, 1, 3);
+    initCoordinate();
+
+    camera.position.set(4, 8, 7);
     camera.lookAt(0, 0, 3);
     scene.add(camera);
 
@@ -49,23 +44,19 @@ function init(){
     renderer.localClippingEnabled = true;
     container.value?.appendChild(renderer.domElement);
 
-    scene.background = new THREE.Color(0x222255);
-    const gridSize = props.gridSize;
-    const grid = new THREE.GridHelper(gridSize, gridSize / props.unit, 0x888888);
-    grid.position.set(gridSize / 2, 0, gridSize / 2);
-    scene.add(grid);
-
-    const axisX = createAxis(1,0,0)
-    const axisY = createAxis(0,1,0)
-    const axisZ = createAxis(0,0,1)
-    scene.add(axisX, axisY, axisZ)
 
     const graph = graphDrawer();
     scene.add(graph);
     moveGraph(graph);
-    addObject();
+
+    const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT]);
+    tracex0.forEach((el) => {
+        const x0cross = el.clone().rotateY(Math.PI * 0.5);
+        scene.add(x0cross);
+    });
+
     for(let z = 0; z <= props.gridSize; z += props.unit){
-        const trace = graphTrace(z, 0.3, "rgb(220,220,120)");
+        const trace = graphTrace(z, 0.3, "rgb(220,220,150)", clips);
         trace.forEach((el) => {
             scene.add(el);
         });
@@ -84,8 +75,12 @@ function animate(callback? : () => void){
     frame();
 };
 
+onMounted(() => {
+    init();
+});
+
 //y = sin(2i)　周期pi　振幅amplitude　係数2
-const amplitude = 0.5;
+const amplitude = 0.6;
 const amp = (i:number) => {
     const amp = i % 2 === 0 ? amplitude : -amplitude;
     return amp;
@@ -101,23 +96,21 @@ function graphDrawer() {
     const geometry = new THREE.BufferGeometry();
     const points = [];
     for(let i = 0; i < range; i += 0.1){
-        points.push(new THREE.Vector3(i-range, -Math.sin((i-range) * wLength) * amplitude, 0));
+        points.push(new THREE.Vector3(i, -Math.sin((i) * wLength) * amplitude, 0));
     };
     geometry.setFromPoints(points);
-
-    const material = new THREE.MeshBasicMaterial({
-        color: 0xffff00,
+    const material = new THREE.LineBasicMaterial({
+        color: 0xffffff,
         clippingPlanes: clips,
     });
-    const graph = new THREE.Line(geometry, material);
-    return graph;
+    return new THREE.Line(geometry, material);
 };
-function graphTrace(z: number, opacity: number, color: string) {
+function graphTrace(z: number, opacity: number, color: string, clips: THREE.Plane[]) {
     const colors = new THREE.Color(color);
     const trace: THREE.Mesh[] = [];
     for(let i = 0; i < range; i++){
         const shape = new THREE.Shape();
-        const offset = Math.PI * 0.25 * i * wLength + z - range * Math.PI*0.5;
+        const offset = Math.PI * 0.25 * i * wLength + z - range * Math.PI * 0.5;
         shape.moveTo(offset, 0);
         const points: THREE.Vector2[] = [
                 new THREE.Vector2(offset + Math.PI * 0.25, amp(i)),
@@ -151,7 +144,10 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
     mixer.addEventListener("finished", () => {
         scene.remove(object);
         object.geometry.dispose();
-        addObject();
+        const traceT = graphTrace(props.gridSize, 0.3, "rgb(220, 220, 150)", [clipx0]);
+        traceT.forEach((el) => {
+            scene.add(el);
+        });
     });
     const action = mixer.clipAction(moveObjectClip);
     action.setLoop(THREE.LoopOnce, 0)
@@ -162,42 +158,24 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
         if(mixer.time <= props.gridSize){
             clipT.set(new THREE.Vector3(0,0,-1), mixer.time);
         } else {
-            clipT.set(new THREE.Vector3(0,0,-1), props.gridSize+0.01);
+            clipT.set(new THREE.Vector3(0,0,-1), props.gridSize);
         }
     });
 };
-function addObject() {
-    const colors = new THREE.Color("rgb(220, 150, 150)");
-    const trace: THREE.Mesh[] = [];
-    for(let i = 0; i < range; i++){
-        const shape = new THREE.Shape();
-        const offset = Math.PI * 0.25 * i * wLength + props.gridSize - range * Math.PI*0.5;
-        shape.moveTo(offset, 0);
-        const points: THREE.Vector2[] = [
-                new THREE.Vector2(offset + Math.PI * 0.25, amp(i)),
-                new THREE.Vector2(offset + Math.PI * 0.25 * 2, 0),
-        ];
-        shape.splineThru(points);
-        const geometry = new THREE.ShapeGeometry(shape);
-        const material = new THREE.MeshPhongMaterial({
-            transparent: true,
-            opacity: 0.8,
-            color: colors,
-            side: THREE.DoubleSide,
-            clippingPlanes: [clipT],
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.z = props.gridSize;
-        trace.push(mesh);
-    };
-    trace.forEach((el) => {
-        const x0cross = el.clone().rotateY(Math.PI * 0.5);
-        scene.add(x0cross);
-    });
-}
-function createAxis(x:number, y:number, z:number): THREE.ArrowHelper {
-    const direction = new THREE.Vector3(x, y, z);
-    return new THREE.ArrowHelper(direction, origin, props.gridSize + 5);
+function initCoordinate(): void {
+    const dirX = new THREE.Vector3(1, 0, 0);
+    const dirY = new THREE.Vector3(0, 1, 0);
+    const dirZ = new THREE.Vector3(0, 0, 1);
+    const axisX = new THREE.ArrowHelper(dirX, origin, props.gridSize + 5);
+    const axisY = new THREE.ArrowHelper(dirY, origin, props.gridSize + 5);
+    const axisZ = new THREE.ArrowHelper(dirZ, origin, props.gridSize + 5);
+    scene.add(axisX, axisY, axisZ);
+
+    scene.background = new THREE.Color(0x222255);
+    const gridSize = props.gridSize;
+    const grid = new THREE.GridHelper(gridSize, gridSize / props.unit, 0x888888);
+    grid.position.set(gridSize / 2, 0, gridSize / 2);
+    scene.add(grid);
 }
 </script>
 
