@@ -34,7 +34,8 @@ initGui();
 function init(){
     initCoordinate();
 
-    camera.position.set(4, 8, 7);
+    camera.position.set(4, 8, 7); //俯瞰
+    // camera.position.set(-4, 2, 4); //y-z
     camera.lookAt(0, 0, 3);
     scene.add(camera);
 
@@ -49,7 +50,7 @@ function init(){
     scene.add(graph);
     moveGraph(graph);
 
-    const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT]);
+    const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
     tracex0.forEach((el) => {
         const x0cross = el.clone().rotateY(Math.PI * 0.5);
         scene.add(x0cross);
@@ -81,11 +82,7 @@ onMounted(() => {
 
 //y = sin(2i)　周期pi　振幅amplitude　係数2
 const amplitude = 0.6;
-const amp = (i:number) => {
-    const amp = i % 2 === 0 ? amplitude : -amplitude;
-    return amp;
-};
-const wLength = 2;
+const wLength = 8;
 const range = props.gridSize;
 const clipx0 = new THREE.Plane(new THREE.Vector3(1, 0, 0));
 const clipxz = new THREE.Plane(new THREE.Vector3(-1, 0, 1));
@@ -96,9 +93,10 @@ function graphDrawer() {
     const geometry = new THREE.BufferGeometry();
     const points = [];
     for(let i = 0; i < range; i += 0.1){
-        points.push(new THREE.Vector3(i, -Math.sin((i) * wLength) * amplitude, 0));
+        points.push(new THREE.Vector3(i, Math.sin(i * wLength) * amplitude, 0));
     };
     geometry.setFromPoints(points);
+    geometry.rotateY(Math.PI);
     const material = new THREE.LineBasicMaterial({
         color: 0xffffff,
         clippingPlanes: clips,
@@ -108,16 +106,28 @@ function graphDrawer() {
 function graphTrace(z: number, opacity: number, color: string, clips: THREE.Plane[]) {
     const colors = new THREE.Color(color);
     const trace: THREE.Mesh[] = [];
-    for(let i = 0; i < range; i++){
-        const shape = new THREE.Shape();
-        const offset = Math.PI * 0.25 * i * wLength + z - range * Math.PI * 0.5;
+    const halfWave = (2 * Math.PI) / wLength / 2;
+
+    // sin波を一山ごと描画してtraceにpushする　以下のfor文全体で特定の時間tにおける軌跡一つ分
+    // 一連の処理は、z=t平面上で実行されていることに留意する
+    // 原点スタートの上昇波に初期化したいが、animationがx=z方向に進行するのでy軸に関して半回転している
+    for(let i = 0; i * halfWave < range; i++){
+        const shape = new THREE.Shape(); 
+
+        //次の山の開始位置補正　-zはanimationの処理とy軸半回転の兼ね合い
+        const offset = halfWave * i - z ;
+
         shape.moveTo(offset, 0);
+        const amp = i % 2 === 0 ? amplitude : -amplitude;
         const points: THREE.Vector2[] = [
-                new THREE.Vector2(offset + Math.PI * 0.25, amp(i)),
-                new THREE.Vector2(offset + Math.PI * 0.25 * 2, 0),
+                new THREE.Vector2(offset + halfWave/2, amp),
+                new THREE.Vector2(offset + halfWave, 0),
         ];
         shape.splineThru(points);
+
         const geometry = new THREE.ShapeGeometry(shape);
+        geometry.rotateY(Math.PI)
+
         const material = new THREE.MeshPhongMaterial({
             transparent: true,
             opacity: opacity,
@@ -144,7 +154,7 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
     mixer.addEventListener("finished", () => {
         scene.remove(object);
         object.geometry.dispose();
-        const traceT = graphTrace(props.gridSize, 0.3, "rgb(220, 220, 150)", [clipx0]);
+        const traceT = graphTrace(props.gridSize, 0.3, "rgb(220, 220, 150)", [clipx0, clipxz]);
         traceT.forEach((el) => {
             scene.add(el);
         });
