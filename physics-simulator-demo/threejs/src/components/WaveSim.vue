@@ -11,6 +11,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
+const group = new THREE.Group();
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
@@ -25,7 +26,23 @@ const props = {
 }
 function initGui() {
     const gui = new GUI({container: container.value, width: 320});
-    gui.add(props, "time"   , 0  , 5, 0.01)
+    gui.add(props, "time", 0, props.gridSize, 0.01).onChange(value => {
+        console.log(value);
+        group.clear();
+        const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1), value);
+        const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
+        tracex0.forEach((el) => {
+            const x0cross = el.clone().rotateY(Math.PI * 0.5);
+            group.add(x0cross);
+        });
+
+        for(let z = 0; z <= props.gridSize; z += props.unit){
+            const trace = graphTrace(z, 0.3, "rgb(220,220,150)", [clipx0, clipxz, clipT]);
+            trace.forEach((el) => {
+                group.add(el);
+            });
+        };
+    })
     gui.add(props, "maxTime", 0.5, 5, 0.01)
     gui.add(props, "unit"   , 0  , 1, 0.01)
 }
@@ -51,22 +68,27 @@ function init(){
         container.value?.appendChild(renderer.domElement);
         
         camera.aspect = innerWidth / innerHeight;
-    })
+    });
+ 
+
+
+    scene.add(group);
 
     const graph = graphDrawer();
-    scene.add(graph);
+    group.add(graph);
+    // scene.add(graph);
     moveGraph(graph);
 
     const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
     tracex0.forEach((el) => {
         const x0cross = el.clone().rotateY(Math.PI * 0.5);
-        scene.add(x0cross);
+        group.add(x0cross);
     });
 
     for(let z = 0; z <= props.gridSize; z += props.unit){
-        const trace = graphTrace(z, 0.3, "rgb(220,220,150)", clips);
+        const trace = graphTrace(z, 0.3, "rgb(220,220,150)", [clipT, clipxz, clipx0]);
         trace.forEach((el) => {
-            scene.add(el);
+            group.add(el);
         });
     };
     animate();
@@ -94,7 +116,6 @@ const range = props.gridSize;
 const clipx0 = new THREE.Plane(new THREE.Vector3(1, 0, 0));
 const clipxz = new THREE.Plane(new THREE.Vector3(-1, 0, 1));
 const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.8);
-const clips = [clipx0, clipxz, clipT];
 
 function graphDrawer() {
     const geometry = new THREE.BufferGeometry();
@@ -106,7 +127,7 @@ function graphDrawer() {
     geometry.rotateY(Math.PI);
     const material = new THREE.LineBasicMaterial({
         color: 0xffffff,
-        clippingPlanes: clips,
+        clippingPlanes: [clipx0, clipxz, clipT],
     });
     return new THREE.Line(geometry, material);
 };
@@ -163,7 +184,7 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
         object.geometry.dispose();
         const traceT = graphTrace(props.gridSize, 0.3, "rgb(220, 220, 150)", [clipx0, clipxz]);
         traceT.forEach((el) => {
-            scene.add(el);
+            group.add(el);
         });
     });
     const action = mixer.clipAction(moveObjectClip);
