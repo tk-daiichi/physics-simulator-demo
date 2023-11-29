@@ -45,6 +45,13 @@ function init(){
     renderer.localClippingEnabled = true;
     container.value?.appendChild(renderer.domElement);
 
+    window.onresize = (() => {
+        const {innerWidth, innerHeight} = window;
+        renderer.setSize(innerWidth, innerHeight);
+        container.value?.appendChild(renderer.domElement);
+        
+        camera.aspect = innerWidth / innerHeight;
+    })
 
     const graph = graphDrawer();
     scene.add(graph);
