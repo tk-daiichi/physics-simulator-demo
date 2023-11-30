@@ -18,21 +18,49 @@ const renderer = new THREE.WebGLRenderer();
 const ambientLight = new THREE.AmbientLight(0xffffff, 3);
 const origin = new THREE.Vector3(0,0,0);
 const controls = new OrbitControls(camera, renderer.domElement);
+
 const props = {
     time: 0.01,
-    maxTime: 5,
+    maxTime: 8,
     unit: 0.25,
-    gridSize: 5,
-    俯瞰: function() {camera.position.set(4, 8, 7)},
-    ytグラフ: function() {camera.position.set(-4, 0.5, 1)}
-}
+    gridSize: 8,
+    俯瞰: function() {camera.position.set(9, 10, 11)},
+    ytグラフ: function() {camera.position.set(-4, 0.5, 1)},
+    再生: function() {
+        group.clear();
+        clipT.set(new THREE.Vector3(0,0,-1), 0);
+        const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
+        tracex0.forEach((el) => {
+            const x0cross = el.clone().rotateY(Math.PI * 0.5);
+            group.add(x0cross);
+        });
+
+        for(let z = 0; z <= props.gridSize; z += props.unit){
+            const trace = graphTrace(z, 0.3, "rgb(220,220,150)", [clipx0, clipxz, clipT]);
+            trace.forEach((el) => {
+                group.add(el);
+            });
+        };        
+        const graph = graphDrawer();
+        group.add(graph);
+        moveGraph(graph);
+    },
+};
+//y = sin(2i)　周期pi　振幅amplitude　係数2
+const amplitude = 0.6;
+const wLength = 2;
+const range = props.gridSize;
+const clipx0 = new THREE.Plane(new THREE.Vector3(1, 0, 0));
+const clipxz = new THREE.Plane(new THREE.Vector3(-1, 0, 1));
+const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1));
+
+
 function initGui() {
     const gui = new GUI({container: container.value, width: 320});
     gui.add(props, "time", 0, props.gridSize, 0.01).onChange(value => {
-        console.log(value);
-        group.clear();
-        const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1), value);
-        const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
+        group.clear();            
+        clipT.set(new THREE.Vector3(0,0,-1), value);
+        const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT]);
         tracex0.forEach((el) => {
             const x0cross = el.clone().rotateY(Math.PI * 0.5);
             group.add(x0cross);
@@ -49,13 +77,14 @@ function initGui() {
     gui.add(props, "unit"   , 0  , 1, 0.01)
     gui.add(props, "俯瞰")
     gui.add(props, "ytグラフ")
+    gui.add(props, "再生")
 }
 initGui();
 
 function init(){
     initCoordinate();
 
-    camera.position.set(4, 8, 7); //俯瞰
+    camera.position.set(9, 10, 11); //俯瞰
     camera.lookAt(0, 0, 3);
     scene.add(camera);
 
@@ -74,13 +103,12 @@ function init(){
     });
  
 
+    clipT.set(new THREE.Vector3(0,0,-1), props.gridSize);
 
     scene.add(group);
 
-    const graph = graphDrawer();
-    group.add(graph);
-    // scene.add(graph);
-    moveGraph(graph);
+    // group.add(graph);
+    // moveGraph(graph);
 
     const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
     tracex0.forEach((el) => {
@@ -112,13 +140,6 @@ onMounted(() => {
     init();
 });
 
-//y = sin(2i)　周期pi　振幅amplitude　係数2
-const amplitude = 0.6;
-const wLength = 8;
-const range = props.gridSize;
-const clipx0 = new THREE.Plane(new THREE.Vector3(1, 0, 0));
-const clipxz = new THREE.Plane(new THREE.Vector3(-1, 0, 1));
-const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.8);
 
 function graphDrawer() {
     const geometry = new THREE.BufferGeometry();
@@ -195,11 +216,9 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
     action.play();
     const clock = new THREE.Clock();
     animate(() => {
-        mixer.update(clock.getDelta());
         if(mixer.time <= props.gridSize){
+            mixer.update(clock.getDelta());
             clipT.set(new THREE.Vector3(0,0,-1), mixer.time);
-        } else {
-            clipT.set(new THREE.Vector3(0,0,-1), props.gridSize);
         }
     });
 };
