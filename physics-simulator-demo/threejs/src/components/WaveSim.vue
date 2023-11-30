@@ -19,14 +19,16 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 3);
 const origin = new THREE.Vector3(0,0,0);
 const controls = new OrbitControls(camera, renderer.domElement);
 
+const animStop = ref<boolean>(false);
 const props = {
-    time: 0.01,
+    time: 0,
     maxTime: 8,
     unit: 0.25,
     gridSize: 8,
     俯瞰: function() {camera.position.set(9, 10, 11)},
     ytグラフ: function() {camera.position.set(-4, 0.5, 1)},
     再生: function() {
+        animStop.value = false;
         group.clear();
         clipT.set(new THREE.Vector3(0,0,-1), 0);
         const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
@@ -45,6 +47,9 @@ const props = {
         group.add(graph);
         moveGraph(graph);
     },
+    停止: function() {
+        animStop.value = true;
+    },
 };
 //y = sin(2i)　周期pi　振幅amplitude　係数2
 const amplitude = 0.6;
@@ -57,27 +62,31 @@ const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1));
 
 function initGui() {
     const gui = new GUI({container: container.value, width: 320});
-    gui.add(props, "time", 0, props.gridSize, 0.01).onChange(value => {
-        group.clear();            
-        clipT.set(new THREE.Vector3(0,0,-1), value);
-        const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT]);
-        tracex0.forEach((el) => {
-            const x0cross = el.clone().rotateY(Math.PI * 0.5);
-            group.add(x0cross);
-        });
-
-        for(let z = 0; z <= props.gridSize; z += props.unit){
-            const trace = graphTrace(z, 0.3, "rgb(220,220,150)", [clipx0, clipxz, clipT]);
-            trace.forEach((el) => {
-                group.add(el);
+    gui.add(props, "time", 0, props.gridSize, 0.01)
+        .onChange(value => {
+            animStop.value = true;
+            group.clear();            
+            clipT.set(new THREE.Vector3(0,0,-1), value);
+            const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT]);
+            tracex0.forEach((el) => {
+                const x0cross = el.clone().rotateY(Math.PI * 0.5);
+                group.add(x0cross);
             });
-        };
-    })
+
+            for(let z = 0; z <= props.gridSize; z += props.unit){
+                const trace = graphTrace(z, 0.3, "rgb(220,220,150)", [clipx0, clipxz, clipT]);
+                trace.forEach((el) => {
+                    group.add(el);
+                });
+            };
+        })
+        .listen();
     gui.add(props, "maxTime", 0.5, 5, 0.01)
     gui.add(props, "unit"   , 0  , 1, 0.01)
     gui.add(props, "俯瞰")
     gui.add(props, "ytグラフ")
     gui.add(props, "再生")
+    gui.add(props, "停止")
 }
 initGui();
 
@@ -106,9 +115,6 @@ function init(){
     clipT.set(new THREE.Vector3(0,0,-1), props.gridSize);
 
     scene.add(group);
-
-    // group.add(graph);
-    // moveGraph(graph);
 
     const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
     tracex0.forEach((el) => {
@@ -216,10 +222,18 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
     action.play();
     const clock = new THREE.Clock();
     animate(() => {
-        if(mixer.time <= props.gridSize){
+        if(animStop.value == true) {
+            clipT.set(new THREE.Vector3(0,0,-1), props.time);
+            action.stop();
+            mixer.uncacheClip;
+            mixer.uncacheAction;
+            mixer.uncacheRoot;
+        } else if(mixer.time <= props.gridSize){
             mixer.update(clock.getDelta());
-            clipT.set(new THREE.Vector3(0,0,-1), mixer.time);
-        }
+            const mixerTime = Math.min(mixer.time, props.gridSize)
+            clipT.set(new THREE.Vector3(0,0,-1), mixerTime);
+            props.time = mixer.time;
+        } 
     });
 };
 function initCoordinate(): void {
