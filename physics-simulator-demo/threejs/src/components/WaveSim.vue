@@ -19,18 +19,23 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 3);
 const origin = new THREE.Vector3(0,0,0);
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const animStop = ref<boolean>(false);
+const animStop = ref<boolean>(true);
 const props = {
     time: 0,
     maxTime: 8,
     unit: 0.25,
     gridSize: 8,
-    俯瞰: function() {camera.position.set(9, 10, 11)},
+    俯瞰: function() {camera.position.set(6,10,11)},
     ytグラフ: function() {camera.position.set(-4, 0.5, 1)},
-    再生: function() {
-        animStop.value = false;
+    starter: function() {
+        if(props.time >= 8){
+            animStop.value = false;
+        } else {
+            animStop.value = !animStop.value;
+        };
+        
         group.clear();
-        clipT.set(new THREE.Vector3(0,0,-1), 0);
+        clipT.set(new THREE.Vector3(0,0,-1), props.time);
         const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
         tracex0.forEach((el) => {
             const x0cross = el.clone().rotateY(Math.PI * 0.5);
@@ -44,11 +49,9 @@ const props = {
             });
         };        
         const graph = graphDrawer();
+        graph.position.set(props.time, 0, props.time);
         group.add(graph);
         moveGraph(graph);
-    },
-    停止: function() {
-        animStop.value = true;
     },
 };
 //y = sin(2i)　周期pi　振幅amplitude　係数2
@@ -67,7 +70,7 @@ function initGui() {
             animStop.value = true;
             group.clear();            
             clipT.set(new THREE.Vector3(0,0,-1), value);
-            const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT]);
+            const tracex0 = graphTrace(props.gridSize, 0.8, "rgb(220, 150, 150)", [clipT, clipxz]);
             tracex0.forEach((el) => {
                 const x0cross = el.clone().rotateY(Math.PI * 0.5);
                 group.add(x0cross);
@@ -79,21 +82,23 @@ function initGui() {
                     group.add(el);
                 });
             };
+            const graph = graphDrawer();
+            graph.position.set(props.time, 0, props.time);
+            group.add(graph);
         })
         .listen();
     gui.add(props, "maxTime", 0.5, 5, 0.01)
     gui.add(props, "unit"   , 0  , 1, 0.01)
     gui.add(props, "俯瞰")
     gui.add(props, "ytグラフ")
-    gui.add(props, "再生")
-    gui.add(props, "停止")
+    gui.add(props, "starter").name("一時停止/再生")
 }
 initGui();
 
 function init(){
     initCoordinate();
 
-    camera.position.set(9, 10, 11); //俯瞰
+    camera.position.set(6,10,11); //俯瞰
     camera.lookAt(0, 0, 3);
     scene.add(camera);
 
@@ -209,22 +214,17 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
         [positionKF]
     );
     const mixer = new THREE.AnimationMixer(object);
-    mixer.addEventListener("finished", () => {
-        scene.remove(object);
-        object.geometry.dispose();
-        const traceT = graphTrace(props.gridSize, 0.3, "rgb(220, 220, 150)", [clipx0, clipxz]);
-        traceT.forEach((el) => {
-            group.add(el);
-        });
-    });
     const action = mixer.clipAction(moveObjectClip);
     action.setLoop(THREE.LoopOnce, 0)
     action.play();
     const clock = new THREE.Clock();
+    const startTime = (props.time <= 0 || props.time >= props.gridSize) ? 0 : props.time;
+    mixer.setTime(startTime);
+    action.time = mixer.time;
     animate(() => {
-        if(animStop.value == true) {
+        if(animStop.value == true && mixer.time < props.gridSize) {
             clipT.set(new THREE.Vector3(0,0,-1), props.time);
-            action.stop();
+            mixer.time = action.time = props.time;
             mixer.uncacheClip;
             mixer.uncacheAction;
             mixer.uncacheRoot;
@@ -232,7 +232,7 @@ function moveGraph(object: THREE.Line | THREE.Mesh) {
             mixer.update(clock.getDelta());
             const mixerTime = Math.min(mixer.time, props.gridSize)
             clipT.set(new THREE.Vector3(0,0,-1), mixerTime);
-            props.time = mixer.time;
+            props.time = mixerTime;
         } 
     });
 };
