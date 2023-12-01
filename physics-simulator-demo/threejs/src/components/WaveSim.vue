@@ -43,7 +43,9 @@ const clipx0 = new THREE.Plane(new THREE.Vector3(1, 0, 0));
 const clipxz = new THREE.Plane(new THREE.Vector3(-1, 0, 1));
 const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1));
 
-const animStop = ref<boolean>(true);
+// const animStop = ref<boolean>(true);
+const graph = graphDrawer();
+group.add(graph);
 const value = [0, 0, 0, props.gridSize, 0, props.gridSize];
 const positionKF = new THREE.VectorKeyframeTrack(".position", [0, props.maxTime], value);
 const moveObjectClip = new THREE.AnimationClip(
@@ -51,14 +53,16 @@ const moveObjectClip = new THREE.AnimationClip(
     -1,
     [positionKF]
 );
+const mixer = new THREE.AnimationMixer(graph);
+const action = mixer.clipAction(moveObjectClip);
 
 function initGui() {
     const gui = new GUI({container: container.value, width: 320});
     gui.add(props, "time", 0, props.gridSize, 0.01)
         .onChange(value => {onTimeControl(value)})
         .listen();
-    gui.add(props, "maxTime", 0.5, 5, 0.01)
-    gui.add(props, "unit"   , 0  , 1, 0.01)
+    // gui.add(props, "maxTime", 0.5, 5, 0.01)
+    // gui.add(props, "unit"   , 0  , 1, 0.01)
     gui.add(props, "俯瞰")
     gui.add(props, "ytグラフ")
     gui.add(props, "starter").name("一時停止/再生")
@@ -92,7 +96,7 @@ function init(){
     scene.add(group);
 
     //波の完成形を表示した状態に初期化
-    addWave(props.gridSize, [clipxz, clipx0]);
+    addWave(props.gridSize, [clipxz, clipx0, clipT]);
 
     animate();
 };
@@ -124,54 +128,32 @@ function addWave(time: number, clips: THREE.Plane[]) {
     };
 };
 function onTogglePlay() {
-    if(props.time >= props.maxTime){
-        animStop.value = false;
+    if(props.time == 0){
+        mixer.timeScale = 1;
+        moveGraph();
+    } else if (props.time >= props.gridSize) {
+        mixer.timeScale = 1;
+        mixer.setTime(0);
+        // moveGraph();
     } else {
-        animStop.value = !animStop.value;
-    };
-    
-    group.clear();
-    addWave(props.time, [clipx0, clipxz, clipT]);
-
-    const graph = graphDrawer();
-    group.add(graph);
-
-    moveGraph(graph);
+        mixer.timeScale = (mixer.timeScale == 0) ? 1 : 0;
+    }
 };
 function onTimeControl(value: number) {
-    animStop.value = true;
-
-    group.clear();
-    addWave(value, [clipx0, clipxz, clipT]);
-
-    const graph = graphDrawer();
-    graph.position.set(props.time, 0, props.time);
-    group.add(graph);
+    mixer.timeScale = 1;
+    mixer.setTime(value);
+    mixer.timeScale = 0;
 };
 
-function moveGraph(object: THREE.Line) {
-    const mixer = new THREE.AnimationMixer(object);
-    const action = mixer.clipAction(moveObjectClip);
-
+function moveGraph() {
     action.setLoop(THREE.LoopOnce, 0)
     action.play();
     const clock = new THREE.Clock();
-    const startTime = (props.time <= 0 || props.time >= props.gridSize) ? 0 : props.time;
-    mixer.setTime(startTime);
-    action.time = mixer.time;
     animate(() => {
-        if(animStop.value == true && mixer.time < props.gridSize) {
-            clipT.set(new THREE.Vector3(0,0,-1), props.time);
-            mixer.time = action.time = props.time;
-            mixer.uncacheClip;
-            mixer.uncacheAction;
-            mixer.uncacheRoot;
-        } else if(mixer.time <= props.gridSize){
-            mixer.update(clock.getDelta());
-            const mixerTime = Math.min(mixer.time, props.gridSize)
-            clipT.set(new THREE.Vector3(0,0,-1), mixerTime);
-            props.time = mixerTime;
-        } 
+        mixer.update(clock.getDelta());
+        const mixerTime = Math.min(mixer.time, props.gridSize)
+        clipT.set(new THREE.Vector3(0,0,-1), mixerTime);
+        props.time = mixerTime;
     });
 };
 
@@ -186,7 +168,7 @@ function graphDrawer() {
     geometry.rotateY(Math.PI);
     const material = new THREE.LineBasicMaterial({
         color: 0xffffff,
-        clippingPlanes: [clipx0, clipxz, clipT],
+        // clippingPlanes: [clipx0, clipxz, clipT],
     });
     return new THREE.Line(geometry, material);
 };
