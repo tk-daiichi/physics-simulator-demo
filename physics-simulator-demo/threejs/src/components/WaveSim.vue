@@ -127,22 +127,28 @@ function addWave(time: number, clips: THREE.Plane[]) {
         });
     };
 };
+
+const called = ref<boolean>(false);
 function onTogglePlay() {
-    if(props.time == 0){
-        mixer.timeScale = 1;
+    if(called.value == false) {
         moveGraph();
-    } else if (props.time >= props.gridSize) {
-        mixer.timeScale = 1;
-        mixer.setTime(0);
-        // moveGraph();
+        called.value = true
+    } else if (!action.enabled || props.time == props.gridSize) {
+        action.reset();
     } else {
-        mixer.timeScale = (mixer.timeScale == 0) ? 1 : 0;
+        action.paused = !action.paused;
     }
 };
 function onTimeControl(value: number) {
-    mixer.timeScale = 1;
-    mixer.setTime(value);
-    mixer.timeScale = 0;
+    if(called.value == false){
+        moveGraph();
+        called.value = true;
+    };
+    if(!action.enabled){
+        action.reset();
+    }
+    action.paused = true;
+    action.time = value;
 };
 
 function moveGraph() {
@@ -151,9 +157,9 @@ function moveGraph() {
     const clock = new THREE.Clock();
     animate(() => {
         mixer.update(clock.getDelta());
-        const mixerTime = Math.min(mixer.time, props.gridSize)
-        clipT.set(new THREE.Vector3(0,0,-1), mixerTime);
-        props.time = mixerTime;
+        const actionTime = Math.min(action.time, props.gridSize)
+        clipT.set(new THREE.Vector3(0,0,-1), actionTime);
+        props.time = actionTime;
     });
 };
 
@@ -168,7 +174,7 @@ function graphDrawer() {
     geometry.rotateY(Math.PI);
     const material = new THREE.LineBasicMaterial({
         color: 0xffffff,
-        // clippingPlanes: [clipx0, clipxz, clipT],
+        clippingPlanes: [clipx0, clipxz, clipT],
     });
     return new THREE.Line(geometry, material);
 };
