@@ -43,9 +43,9 @@ const clipx0 = new THREE.Plane(new THREE.Vector3(1, 0, 0));
 const clipxz = new THREE.Plane(new THREE.Vector3(-1, 0, 1));
 const clipT  = new THREE.Plane(new THREE.Vector3(0, 0, -1));
 
-// const animStop = ref<boolean>(true);
+//animationの設定
 const graph = graphDrawer();
-group.add(graph);
+const mixer = new THREE.AnimationMixer(graph);
 const value = [0, 0, 0, props.gridSize, 0, props.gridSize];
 const positionKF = new THREE.VectorKeyframeTrack(".position", [0, props.maxTime], value);
 const moveObjectClip = new THREE.AnimationClip(
@@ -53,7 +53,6 @@ const moveObjectClip = new THREE.AnimationClip(
     -1,
     [positionKF]
 );
-const mixer = new THREE.AnimationMixer(graph);
 const action = mixer.clipAction(moveObjectClip);
 
 function initGui() {
@@ -67,7 +66,6 @@ function initGui() {
             action.paused = true;
             action.timeScale = 1 / value * 10;
         });
-    // gui.add(props, "unit"   , 0  , 1, 0.01)
     gui.add(props, "俯瞰")
     gui.add(props, "ytグラフ")
     gui.add(props, "starter").name("一時停止/再生")
@@ -98,6 +96,7 @@ function init(){
         camera.aspect = innerWidth / innerHeight;
     }); 
 
+    group.add(graph);
     scene.add(group);
 
     //波の完成形を表示した状態に初期化
@@ -171,7 +170,6 @@ function moveGraph() {
             clipT.set(new THREE.Vector3(0,0,-1), root.position.z);
         }
         mixer.addEventListener("finished", () => {
-            console.log("finished")
             clipT.set(new THREE.Vector3(0,0,-1), props.gridSize);
         })
         props.time = root.position.z;
@@ -208,7 +206,7 @@ function graphTrace(z: number, opacity: number, color: string, clips: THREE.Plan
     for(let i = 0; i * halfWave < range; i++) {
         const shape = new THREE.Shape(); 
 
-        //次の山の開始位置補正　-zはanimationの処理とy軸半回転の兼ね合い
+        //次の山の開始位置補正
         const offset = halfWave * i - z ;
 
         shape.moveTo(offset, 0);
