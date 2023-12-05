@@ -61,7 +61,12 @@ function initGui() {
     gui.add(props, "time", 0, props.gridSize, 0.01)
         .onChange(value => {onTimeControl(value)})
         .listen();
-    // gui.add(props, "maxTime", 0.5, 5, 0.01)
+    gui.add(props, "maxTime", {fast: 2, medium: 4, slow: 8})
+        .name("再生速度")
+        .onChange((value) => {
+            action.paused = true;
+            action.timeScale = 1 / value * 10;
+        });
     // gui.add(props, "unit"   , 0  , 1, 0.01)
     gui.add(props, "俯瞰")
     gui.add(props, "ytグラフ")
@@ -147,6 +152,9 @@ function onTimeControl(value: number) {
     if(!action.enabled){
         action.reset();
     }
+    if(called.value == true){
+        clipT.set(new THREE.Vector3(0,0,-1), value);
+    }
     action.paused = true;
     action.time = value;
 };
@@ -157,9 +165,16 @@ function moveGraph() {
     const clock = new THREE.Clock();
     animate(() => {
         mixer.update(clock.getDelta());
-        const actionTime = Math.min(action.time, props.gridSize)
-        clipT.set(new THREE.Vector3(0,0,-1), actionTime);
-        props.time = actionTime;
+
+        const root = action.getRoot();
+        if(action.isRunning()){
+            clipT.set(new THREE.Vector3(0,0,-1), root.position.z);
+        }
+        mixer.addEventListener("finished", () => {
+            console.log("finished")
+            clipT.set(new THREE.Vector3(0,0,-1), props.gridSize);
+        })
+        props.time = root.position.z;
     });
 };
 
