@@ -7,6 +7,7 @@ import { ref, onMounted } from 'vue';
 import * as THREE from "three";
 import { ParametricGeometry } from "three/addons/geometries/ParametricGeometry.js";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 import { isMeshObject } from "@/tools/isType"
 
@@ -18,10 +19,10 @@ const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const light  = new THREE.HemisphereLight(0xffffff, 1000, 2);
+const light  = new THREE.HemisphereLight(0xffffff, 1000, 1.5);
 // const light  = new THREE.PointLight(0xffffff, 1000, 50);
 // const lightHelper = new THREE.PointLightHelper(light);
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 
 // const axisX = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 50, 0x00ff00);
 // const axisZ = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 50, 0xff0000);
@@ -74,10 +75,25 @@ function animate(callback? : () => void){
 };
 
 const param = ref<number>(1);
-const waveSize = 10;
-const amplitude = 0.5;
-const waveLengthParam = 1.5;
-const interval = 0.01;
+const props = {
+    waveSize: 10,
+    amplitude: 0.5,
+    waveLengthParam: 1.5,
+    interval: 0.04,
+};
+const cameraPos = {
+    俯瞰: function(){camera.position.set(0, 10, 0)},
+    波面: function(){camera.position.set(0, 6, -10)}
+}
+function initGui() {
+    const gui = new GUI({container: container.value, width: 320});
+    gui.add(props, "amplitude", 0.2, 1, 0.01).name("振幅");
+    gui.add(props, "waveLengthParam", 1, 3, 0.5).name("波長係数");
+    gui.add(props, "interval", 0.03, 0.06, 0.01).name("周期");
+    gui.add(cameraPos, "俯瞰");
+    gui.add(cameraPos, "波面");
+};
+initGui();
 
 const clipX1 = new THREE.Plane(new THREE.Vector3(-1, 0, 0), Math.PI * 6 / Math.sqrt(2));
 const clipX2 = new THREE.Plane(new THREE.Vector3(1, 0, 0), Math.PI * 6 / Math.sqrt(2));
@@ -94,7 +110,7 @@ function waveAnim() {
         group.clear();
     };
     group.clear();    
-    param.value += interval;
+    param.value += props.interval;
 
     const geometry = new ParametricGeometry(paramFunc, 100, 100);
     const material = new THREE.MeshLambertMaterial({
@@ -108,13 +124,13 @@ function waveAnim() {
 
 function paramFunc(u: number, v: number, vec: THREE.Vector3) {
     const phase = param.value;
-    u *= Math.PI * waveSize;
-    v *= Math.PI * waveSize;
+    u *= Math.PI * props.waveSize;
+    v *= Math.PI * props.waveSize;
 
     let x = Math.cos(u) * v ;
     let z = Math.sin(u) * v ;
-    let y = Math.cos(v * waveLengthParam - Math.PI * phase) * amplitude;
-    if (v >= Math.PI * (waveSize - 0.5)){
+    let y = Math.cos(v * props.waveLengthParam - Math.PI * phase) * props.amplitude;
+    if (v >= Math.PI * (props.waveSize - 0.5)){
         y = 0
     }
   
