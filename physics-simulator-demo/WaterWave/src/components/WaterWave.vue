@@ -27,6 +27,8 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 // const axisX = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 50, 0x00ff00);
 // const axisZ = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 50, 0xff0000);
 
+const isStop = ref<boolean>(false)
+
 onMounted(() => {
     init();
 });
@@ -58,6 +60,10 @@ function init() {
     renderer.setSize(innerWidth/2, innerHeight/2);
     renderer.localClippingEnabled = true;
     container.value?.appendChild(renderer.domElement);
+    
+    container.value?.addEventListener("click", () => {
+        isStop.value = !isStop.value;
+    })
 
     animate(waveAnim);
 };
@@ -67,7 +73,7 @@ function animate(callback? : () => void){
         controls.update();
         if(callback){
             callback();
-        }
+        };
         requestAnimationFrame(frame);
         renderer.render(scene, camera);
     });
@@ -109,8 +115,10 @@ function waveAnim() {
         geometries.dispose();
         group.clear();
     };
-    group.clear();    
-    param.value += props.interval;
+    group.clear();
+    if(isStop.value == false){
+        param.value += props.interval;
+    };
 
     const geometry = new ParametricGeometry(paramFunc, 100, 100);
     const material = new THREE.MeshLambertMaterial({
