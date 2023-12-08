@@ -18,9 +18,13 @@ const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const light  = new THREE.PointLight(0xffffff, 1000, 50);
-const lightHelper = new THREE.PointLightHelper(light);
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+const light  = new THREE.HemisphereLight(0xffffff, 1000, 2);
+// const light  = new THREE.PointLight(0xffffff, 1000, 50);
+// const lightHelper = new THREE.PointLightHelper(light);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+
+// const axisX = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 50, 0x00ff00);
+// const axisZ = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 50, 0xff0000);
 
 onMounted(() => {
     init();
@@ -29,15 +33,19 @@ onMounted(() => {
 function init() {
     scene.add(group);
 
-    camera.position.set(1,30,-1);
+    camera.position.set(0,10,-1);
+    // camera.position.set(0,10,-15);
     scene.add(camera);
 
     light.position.set(20, 0, 20);
     scene.add(light);
-    scene.add(lightHelper);
+    // scene.add(lightHelper);
     scene.add(ambientLight);
 
-    const geometry = new ParametricGeometry(paramFunc, 50, 50);
+    // scene.add(axisX)
+    // scene.add(axisZ)
+
+    const geometry = new ParametricGeometry(paramFunc, 100, 100);
     const material = new THREE.MeshLambertMaterial({
         color: 0x0000ff,
         side: THREE.DoubleSide,
@@ -47,12 +55,11 @@ function init() {
 
     const {innerWidth, innerHeight} = window
     renderer.setSize(innerWidth/2, innerHeight/2);
+    renderer.localClippingEnabled = true;
     container.value?.appendChild(renderer.domElement);
 
     animate(waveAnim);
 };
-
-const param = ref<number>(1)
 
 function animate(callback? : () => void){
     const frame = (() => {
@@ -65,6 +72,19 @@ function animate(callback? : () => void){
     });
     frame();
 };
+
+const param = ref<number>(1);
+const waveSize = 10;
+const amplitude = 0.5;
+const waveLengthParam = 1.5;
+const interval = 0.01;
+
+const clipX1 = new THREE.Plane(new THREE.Vector3(-1, 0, 0), Math.PI * 6 / Math.sqrt(2));
+const clipX2 = new THREE.Plane(new THREE.Vector3(1, 0, 0), Math.PI * 6 / Math.sqrt(2));
+const clipZ1 = new THREE.Plane(new THREE.Vector3(0, 0, -1), Math.PI * 6 / Math.sqrt(2));
+const clipZ2 = new THREE.Plane(new THREE.Vector3(0, 0, 1), Math.PI * 6 / Math.sqrt(2));
+const clips = [clipX1, clipX2, clipZ1, clipZ2] ;
+
 function waveAnim() {
     if(group.children && isMeshObject(group.children)){
         const materials = group.children[0].material as THREE.Material;
@@ -74,25 +94,26 @@ function waveAnim() {
         group.clear();
     };
     group.clear();    
-    param.value += 0.02;
-    const geometry = new ParametricGeometry(paramFunc, 50, 50);
+    param.value += interval;
+
+    const geometry = new ParametricGeometry(paramFunc, 100, 100);
     const material = new THREE.MeshLambertMaterial({
-        color: 0x66ffff,
+        color: 0xccffff,
         side: THREE.DoubleSide,
+        clippingPlanes: clips,
     });
     const mesh = new THREE.Mesh(geometry, material);
     group.add(mesh);    
 };
 
 function paramFunc(u: number, v: number, vec: THREE.Vector3) {
-    const waveSize = 6;
     const phase = param.value;
     u *= Math.PI * waveSize;
     v *= Math.PI * waveSize;
 
-    let x = Math.cos(u - Math.PI) * v ;
-    let z = Math.sin(u - Math.PI) * v ;
-    let y = Math.cos(v - Math.PI * phase);
+    let x = Math.cos(u) * v ;
+    let z = Math.sin(u) * v ;
+    let y = Math.cos(v * waveLengthParam - Math.PI * phase) * amplitude;
     if (v >= Math.PI * (waveSize - 0.5)){
         y = 0
     }
