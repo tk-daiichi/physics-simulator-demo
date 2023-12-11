@@ -142,9 +142,11 @@ function paramFunc(u: number, v: number, vec: THREE.Vector3) {
 
     let x = Math.cos(u) * v ;
     let z = Math.sin(u) * v ;
-    let y = Math.cos(v * props.waveLengthParam - Math.PI * phase.value) * props.amplitude;
-    if (v >= Math.PI * (props.waveSize - 0.5)){
+    let y;
+    if (phase.value * Math.PI / props.waveLengthParam < v){
         y = 0
+    } else {
+        y = Math.cos(v * props.waveLengthParam - Math.PI * phase.value) * props.amplitude;
     }
   
     vec.set(x,y,z);
