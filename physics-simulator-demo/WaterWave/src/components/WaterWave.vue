@@ -21,10 +21,10 @@ const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const light  = new THREE.HemisphereLight(0xffffff, 1000, 1.5);
+const light  = new THREE.DirectionalLight(0xffffff, 2);
 // const light  = new THREE.PointLight(0xffffff, 1000, 50);
 // const lightHelper = new THREE.PointLightHelper(light);
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 
 // const axisX = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 50, 0x00ff00);
 // const axisZ = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 50, 0xff0000);
@@ -43,7 +43,7 @@ function init() {
     // camera.position.set(0,10,-15);
     scene.add(camera);
 
-    light.position.set(20, 0, 20);
+    light.position.set(5, 0, 5);
     scene.add(light);
     // scene.add(lightHelper);
     scene.add(ambientLight);
@@ -130,7 +130,7 @@ function waveAnim() {
 
     const geometry = new ParametricGeometry(paramFunc, 100, 100);
     const material = new THREE.MeshLambertMaterial({
-        color: 0xddffff,
+        color: 0xaaffff,
         side: THREE.DoubleSide,
         clippingPlanes: clips,
     });
@@ -188,7 +188,7 @@ function waveHelper() {
             groupHelper.add(circle);
         } else {
             const material = new THREE.LineDashedMaterial({
-                color: 0xff00ff,
+                color: 0xff0000,
                 scale: 1,
                 dashSize: 0.5,
                 gapSize: 0.25,
