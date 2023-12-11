@@ -90,6 +90,9 @@ const control = {
     helper: function(){
         showHelper.value = !showHelper.value;
     },
+    reset: function(){
+        phase.value = 0;
+    },
 };
 const cameraPos = {
     俯瞰: function(){camera.position.set(0, 10, 0)},
@@ -104,6 +107,7 @@ function initGui() {
     gui.add(cameraPos, "波面");
     gui.add(control, "stop").name("再生/停止");
     gui.add(control, "helper").name("波面表示切替");
+    gui.add(control, "reset").name("リセット");
 };
 initGui();
 
