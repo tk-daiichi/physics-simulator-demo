@@ -15,7 +15,6 @@ const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
 const groupWave = new THREE.Group();
 const groupHelper = new THREE.Group();
-const groupDHelper = new THREE.Group();
 
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
@@ -39,7 +38,6 @@ onMounted(() => {
 function init() {
     scene.add(groupWave);
     scene.add(groupHelper);
-    scene.add(groupDHelper);
 
     camera.position.set(0,20,-1);
     // camera.position.set(0,10,-15);
@@ -73,11 +71,9 @@ function init() {
 
     waveAnim();
     waveHelper();
-    waveDashHelper();
 
     animate(waveAnim);
     animate(waveHelper);
-    animate(waveDashHelper);
 };
 
 function animate(callback? : () => void){
@@ -168,63 +164,42 @@ function waveHelper() {
     };
     const waveLength = 2 * Math.PI / props.waveLengthParam;
     const range = (phase.value * Math.PI / props.waveLengthParam) % waveLength;
-    const numOfMount = props.waveSize / waveLength + 2;
+    const numOfMount = props.waveSize / waveLength + 4;
 
     for (let i = 0; i <= numOfMount; i++){
         const curve = new THREE.EllipseCurve(
             0, 0,
-            range + i * waveLength, range + i * waveLength,
+            range + i * waveLength/2, range + i * waveLength/2,
             0, Math.PI * 2,
             false,
             Math.PI / 2      
-        );
+            );
         const points = curve.getPoints(50);
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.LineBasicMaterial({
-            color: 0x0000ff,
-            clippingPlanes: clips,
-        });
-        const circle = new THREE.Line(geometry, material);
-        circle.rotateX(Math.PI / 2);
-        circle.position.y = props.amplitude;
-        groupHelper.add(circle);
-    };
-};
-function waveDashHelper() {
-    if(groupDHelper.children[0] && isLineObject(groupDHelper.children)){
-        const materials = groupDHelper.children[0].material as THREE.Material;
-        const geometries = groupDHelper.children[0].geometry as THREE.BufferGeometry;
-        materials.dispose();
-        geometries.dispose();
-        groupDHelper.clear();
-    };
-    const waveLength = 2 * Math.PI / props.waveLengthParam;    
-    const offset = waveLength / 2;
-    const range = (phase.value * Math.PI / props.waveLengthParam) % waveLength;
-    const numOfMount = props.waveSize / waveLength + 2;
 
-    for (let i = 0; i <= numOfMount; i++){
-        const curve = new THREE.EllipseCurve(
-            0, 0,
-            range + i * waveLength + offset, range + i * waveLength + offset,
-            0, Math.PI*2,
-            false,
-            Math.PI / 2      
-        );
-        const points = curve.getPoints(50);
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.LineDashedMaterial({
-            color: 0xff00ff,
-            scale: 1,
-            dashSize: 0.5,
-            gapSize: 0.25,
-            clippingPlanes: clips,
-        });
-        const circle = new THREE.Line(geometry, material);
-        circle.rotateX(Math.PI / 2);
-        circle.position.y = 1;
-        circle.computeLineDistances();
-        groupDHelper.add(circle);
+        if(i % 2 == 0){
+            const material = new THREE.LineBasicMaterial({
+                color: 0x0000ff,
+                clippingPlanes: clips,
+            });
+            const circle = new THREE.Line(geometry, material);
+            circle.rotateX(Math.PI / 2);
+            circle.position.y = props.amplitude;
+            groupHelper.add(circle);
+        } else {
+            const material = new THREE.LineDashedMaterial({
+                color: 0xff00ff,
+                scale: 1,
+                dashSize: 0.5,
+                gapSize: 0.25,
+                clippingPlanes: clips,
+            });
+            const circle = new THREE.Line(geometry, material);
+            circle.rotateX(Math.PI / 2);
+            circle.position.y = 1;
+            circle.computeLineDistances();
+            groupHelper.add(circle);
+        }
     };
 };
 </script>
