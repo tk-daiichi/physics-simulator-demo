@@ -22,14 +22,10 @@ const renderer = new THREE.WebGLRenderer();
 const controls = new OrbitControls(camera, renderer.domElement);
 
 const light  = new THREE.DirectionalLight(0xffffff, 2);
-// const light  = new THREE.PointLight(0xffffff, 1000, 50);
-// const lightHelper = new THREE.PointLightHelper(light);
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 
-// const axisX = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 50, 0x00ff00);
-// const axisZ = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,0), 50, 0xff0000);
-
-const isStop = ref<boolean>(false)
+const isStop = ref<boolean>(false);
+const showHelper = ref<boolean>(false);
 
 onMounted(() => {
     init();
@@ -40,17 +36,11 @@ function init() {
     scene.add(groupHelper);
 
     camera.position.set(0,20,-1);
-    // camera.position.set(0,10,-15);
     scene.add(camera);
 
     light.position.set(5, 0, 5);
     scene.add(light);
-    // scene.add(lightHelper);
     scene.add(ambientLight);
-
-    // scene.add(axisX)
-    // scene.add(axisZ)
-
 
     const {innerWidth, innerHeight} = window
     renderer.setSize(innerWidth/2, innerHeight/2);
@@ -69,9 +59,9 @@ function init() {
         renderer.setPixelRatio(innerWidth/innerHeight);
     });
 
-    waveAnim();
+    waveAnim();    
     waveHelper();
-
+    
     animate(waveAnim);
     animate(waveHelper);
 };
@@ -95,10 +85,16 @@ const props = {
     waveLengthParam: 1.5,
     interval: 0.01,
 };
+const control = {
+    stop: function(){isStop.value = !isStop.value},
+    helper: function(){
+        showHelper.value = !showHelper.value;
+    },
+};
 const cameraPos = {
     俯瞰: function(){camera.position.set(0, 10, 0)},
     波面: function(){camera.position.set(0, 6, -10)}
-}
+};
 function initGui() {
     const gui = new GUI({container: container.value, width: 320});
     gui.add(props, "amplitude", 0.2, 1, 0.01).name("振幅");
@@ -106,6 +102,8 @@ function initGui() {
     gui.add(props, "interval", 0.005, 0.02, 0.005).name("周期");
     gui.add(cameraPos, "俯瞰");
     gui.add(cameraPos, "波面");
+    gui.add(control, "stop").name("再生/停止");
+    gui.add(control, "helper").name("波面表示切替");
 };
 initGui();
 
@@ -166,40 +164,42 @@ function waveHelper() {
     const range = (phase.value * Math.PI / props.waveLengthParam) % waveLength;
     const numOfMount = props.waveSize / waveLength + 4;
 
-    for (let i = 0; i <= numOfMount; i++){
-        const curve = new THREE.EllipseCurve(
-            0, 0,
-            range + i * waveLength/2, range + i * waveLength/2,
-            0, Math.PI * 2,
-            false,
-            Math.PI / 2      
-            );
-        const points = curve.getPoints(50);
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    if(showHelper.value == true) {
+        for (let i = 0; i <= numOfMount; i++){
+            const curve = new THREE.EllipseCurve(
+                0, 0,
+                range + i * waveLength/2, range + i * waveLength/2,
+                0, Math.PI * 2,
+                false,
+                Math.PI / 2      
+                );
+            const points = curve.getPoints(50);
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-        if(i % 2 == 0){
-            const material = new THREE.LineBasicMaterial({
-                color: 0x0000ff,
-                clippingPlanes: clips,
-            });
-            const circle = new THREE.Line(geometry, material);
-            circle.rotateX(Math.PI / 2);
-            circle.position.y = props.amplitude;
-            groupHelper.add(circle);
-        } else {
-            const material = new THREE.LineDashedMaterial({
-                color: 0xff0000,
-                scale: 1,
-                dashSize: 0.5,
-                gapSize: 0.25,
-                clippingPlanes: clips,
-            });
-            const circle = new THREE.Line(geometry, material);
-            circle.rotateX(Math.PI / 2);
-            circle.position.y = 1;
-            circle.computeLineDistances();
-            groupHelper.add(circle);
-        }
+            if(i % 2 == 0){
+                const material = new THREE.LineBasicMaterial({
+                    color: 0xff0000,
+                    clippingPlanes: clips,
+                });
+                const circle = new THREE.Line(geometry, material);
+                circle.rotateX(Math.PI / 2);
+                circle.position.y = props.amplitude;
+                groupHelper.add(circle);
+            } else {
+                const material = new THREE.LineDashedMaterial({
+                    color: 0x0000ff,
+                    scale: 1,
+                    dashSize: 0.5,
+                    gapSize: 0.25,
+                    clippingPlanes: clips,
+                });
+                const circle = new THREE.Line(geometry, material);
+                circle.rotateX(Math.PI / 2);
+                circle.position.y = 1;
+                circle.computeLineDistances();
+                groupHelper.add(circle);
+            }
+        };
     };
 };
 </script>
