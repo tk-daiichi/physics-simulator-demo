@@ -15,7 +15,7 @@ const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
 const groupWave = new THREE.Group();
 const groupHelper = new THREE.Group();
-const origin = {x: 9, y: 0, z: 5};
+const origin = {x: 0, y: 0, z: 0};
 
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
@@ -81,7 +81,7 @@ function animate(callback? : () => void){
 
 const phase = ref<number>(0);
 const props = {
-    waveSize: 10,
+    waveSize: 15,
     amplitude: 0.5,
     waveLengthParam: 1.5,
     interval: 0.01,
@@ -112,10 +112,11 @@ function initGui() {
 };
 initGui();
 
-const clipX1 = new THREE.Plane(new THREE.Vector3(-1, 0, 0), Math.PI * 6 / Math.sqrt(2));
-const clipX2 = new THREE.Plane(new THREE.Vector3(1, 0, 0), Math.PI * 6 / Math.sqrt(2));
-const clipZ1 = new THREE.Plane(new THREE.Vector3(0, 0, -1), Math.PI * 6 / Math.sqrt(2));
-const clipZ2 = new THREE.Plane(new THREE.Vector3(0, 0, 1), Math.PI * 6 / Math.sqrt(2));
+const trimer = props.waveSize / Math.sqrt(2);
+const clipX1 = new THREE.Plane(new THREE.Vector3(-1, 0, 0), trimer);
+const clipX2 = new THREE.Plane(new THREE.Vector3(1, 0, 0), trimer);
+const clipZ1 = new THREE.Plane(new THREE.Vector3(0, 0, -1), trimer);
+const clipZ2 = new THREE.Plane(new THREE.Vector3(0, 0, 1), trimer);
 const clips = [clipX1, clipX2, clipZ1, clipZ2] ;
 
 function waveAnim() {
@@ -143,7 +144,7 @@ function waveAnim() {
 
 function paramFunc(u: number, v: number, vec: THREE.Vector3) {
     u *= Math.PI * props.waveSize;
-    v *= Math.PI * props.waveSize;
+    v *= props.waveSize;
 
     let x = Math.cos(u) * v + origin.x;
     let z = Math.sin(u) * v + origin.z;
@@ -169,7 +170,7 @@ function waveHelper() {
     };
     const waveLength = 2 * Math.PI / props.waveLengthParam;
     const range = (phase.value * Math.PI / props.waveLengthParam) % waveLength;
-    const numOfMount = props.waveSize / (waveLength / 2) * 2 + 2;
+    const numOfMount = props.waveSize / (waveLength / 2);
 
     if(showHelper.value == true) {
         for (let i = 0; i <= numOfMount; i++){
