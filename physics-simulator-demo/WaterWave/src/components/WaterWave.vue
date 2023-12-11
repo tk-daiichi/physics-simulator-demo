@@ -15,6 +15,7 @@ const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
 const groupWave = new THREE.Group();
 const groupHelper = new THREE.Group();
+const origin = {x: 9, y: 0, z: 5};
 
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
@@ -144,8 +145,8 @@ function paramFunc(u: number, v: number, vec: THREE.Vector3) {
     u *= Math.PI * props.waveSize;
     v *= Math.PI * props.waveSize;
 
-    let x = Math.cos(u) * v ;
-    let z = Math.sin(u) * v ;
+    let x = Math.cos(u) * v + origin.x;
+    let z = Math.sin(u) * v + origin.z;
     let y;
     if (phase.value * Math.PI / props.waveLengthParam < v){
         y = 0
@@ -168,17 +169,17 @@ function waveHelper() {
     };
     const waveLength = 2 * Math.PI / props.waveLengthParam;
     const range = (phase.value * Math.PI / props.waveLengthParam) % waveLength;
-    const numOfMount = props.waveSize / waveLength + 4;
+    const numOfMount = props.waveSize / (waveLength / 2) * 2 + 2;
 
     if(showHelper.value == true) {
         for (let i = 0; i <= numOfMount; i++){
             const curve = new THREE.EllipseCurve(
-                0, 0,
+                origin.x, origin.z,
                 range + i * waveLength/2, range + i * waveLength/2,
                 0, Math.PI * 2,
                 false,
                 Math.PI / 2      
-                );
+            );
             const points = curve.getPoints(50);
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
