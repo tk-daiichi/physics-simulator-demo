@@ -9,11 +9,14 @@ import { ParametricGeometry } from "three/addons/geometries/ParametricGeometry.j
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
-import { isMeshObject } from "@/tools/isType"
+import { isMeshObject, isLineObject } from "@/tools/isType"
 
 const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
-const group = new THREE.Group();
+const groupWave = new THREE.Group();
+const groupHelper = new THREE.Group();
+const groupDHelper = new THREE.Group();
+
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
@@ -34,9 +37,11 @@ onMounted(() => {
 });
 
 function init() {
-    scene.add(group);
+    scene.add(groupWave);
+    scene.add(groupHelper);
+    scene.add(groupDHelper);
 
-    camera.position.set(0,10,-1);
+    camera.position.set(0,20,-1);
     // camera.position.set(0,10,-15);
     scene.add(camera);
 
@@ -48,24 +53,31 @@ function init() {
     // scene.add(axisX)
     // scene.add(axisZ)
 
-    const geometry = new ParametricGeometry(paramFunc, 100, 100);
-    const material = new THREE.MeshLambertMaterial({
-        color: 0x0000ff,
-        side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    group.add(mesh);
 
     const {innerWidth, innerHeight} = window
     renderer.setSize(innerWidth/2, innerHeight/2);
+    renderer.setPixelRatio(innerWidth/innerHeight);
     renderer.localClippingEnabled = true;
     container.value?.appendChild(renderer.domElement);
     
     container.value?.addEventListener("click", () => {
         isStop.value = !isStop.value;
-    })
+    });
+    window.addEventListener("resize", () => {
+        const {innerWidth, innerHeight} = window;
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth/2, innerHeight/2);
+        renderer.setPixelRatio(innerWidth/innerHeight);
+    });
+
+    waveAnim();
+    waveHelper();
+    waveDashHelper();
 
     animate(waveAnim);
+    animate(waveHelper);
+    animate(waveDashHelper);
 };
 
 function animate(callback? : () => void){
@@ -80,12 +92,12 @@ function animate(callback? : () => void){
     frame();
 };
 
-const param = ref<number>(1);
+const phase = ref<number>(0);
 const props = {
     waveSize: 10,
     amplitude: 0.5,
     waveLengthParam: 1.5,
-    interval: 0.04,
+    interval: 0.01,
 };
 const cameraPos = {
     俯瞰: function(){camera.position.set(0, 10, 0)},
@@ -95,7 +107,7 @@ function initGui() {
     const gui = new GUI({container: container.value, width: 320});
     gui.add(props, "amplitude", 0.2, 1, 0.01).name("振幅");
     gui.add(props, "waveLengthParam", 1, 3, 0.5).name("波長係数");
-    gui.add(props, "interval", 0.03, 0.06, 0.01).name("周期");
+    gui.add(props, "interval", 0.005, 0.02, 0.005).name("周期");
     gui.add(cameraPos, "俯瞰");
     gui.add(cameraPos, "波面");
 };
@@ -108,36 +120,35 @@ const clipZ2 = new THREE.Plane(new THREE.Vector3(0, 0, 1), Math.PI * 6 / Math.sq
 const clips = [clipX1, clipX2, clipZ1, clipZ2] ;
 
 function waveAnim() {
-    if(group.children && isMeshObject(group.children)){
-        const materials = group.children[0].material as THREE.Material;
-        const geometries = group.children[0].geometry as THREE.BufferGeometry;
+    const waveLength = 2 * Math.PI / props.waveLengthParam;    
+    if(groupWave.children[0] && isMeshObject(groupWave.children)){
+        const materials = groupWave.children[0].material as THREE.Material;
+        const geometries = groupWave.children[0].geometry as THREE.BufferGeometry;
         materials.dispose();
         geometries.dispose();
-        group.clear();
+        groupWave.clear();
     };
-    group.clear();
     if(isStop.value == false){
-        param.value += props.interval;
+        phase.value += waveLength * props.interval;
     };
 
     const geometry = new ParametricGeometry(paramFunc, 100, 100);
     const material = new THREE.MeshLambertMaterial({
-        color: 0xccffff,
+        color: 0xddffff,
         side: THREE.DoubleSide,
         clippingPlanes: clips,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    group.add(mesh);    
+    groupWave.add(mesh);    
 };
 
 function paramFunc(u: number, v: number, vec: THREE.Vector3) {
-    const phase = param.value;
     u *= Math.PI * props.waveSize;
     v *= Math.PI * props.waveSize;
 
     let x = Math.cos(u) * v ;
     let z = Math.sin(u) * v ;
-    let y = Math.cos(v * props.waveLengthParam - Math.PI * phase) * props.amplitude;
+    let y = Math.cos(v * props.waveLengthParam - Math.PI * phase.value) * props.amplitude;
     if (v >= Math.PI * (props.waveSize - 0.5)){
         y = 0
     }
@@ -147,6 +158,75 @@ function paramFunc(u: number, v: number, vec: THREE.Vector3) {
 };
 
 
+function waveHelper() {
+    if(groupHelper.children[0] && isLineObject(groupHelper.children)){
+        const materials = groupHelper.children[0].material as THREE.Material;
+        const geometries = groupHelper.children[0].geometry as THREE.BufferGeometry;
+        materials.dispose();
+        geometries.dispose();
+        groupHelper.clear();
+    };
+    const waveLength = 2 * Math.PI / props.waveLengthParam;
+    const range = (phase.value * Math.PI / props.waveLengthParam) % waveLength;
+    const numOfMount = props.waveSize / waveLength + 2;
+
+    for (let i = 0; i <= numOfMount; i++){
+        const curve = new THREE.EllipseCurve(
+            0, 0,
+            range + i * waveLength, range + i * waveLength,
+            0, Math.PI * 2,
+            false,
+            Math.PI / 2      
+        );
+        const points = curve.getPoints(50);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({
+            color: 0x0000ff,
+            clippingPlanes: clips,
+        });
+        const circle = new THREE.Line(geometry, material);
+        circle.rotateX(Math.PI / 2);
+        circle.position.y = props.amplitude;
+        groupHelper.add(circle);
+    };
+};
+function waveDashHelper() {
+    if(groupDHelper.children[0] && isLineObject(groupDHelper.children)){
+        const materials = groupDHelper.children[0].material as THREE.Material;
+        const geometries = groupDHelper.children[0].geometry as THREE.BufferGeometry;
+        materials.dispose();
+        geometries.dispose();
+        groupDHelper.clear();
+    };
+    const waveLength = 2 * Math.PI / props.waveLengthParam;    
+    const offset = waveLength / 2;
+    const range = (phase.value * Math.PI / props.waveLengthParam) % waveLength;
+    const numOfMount = props.waveSize / waveLength + 2;
+
+    for (let i = 0; i <= numOfMount; i++){
+        const curve = new THREE.EllipseCurve(
+            0, 0,
+            range + i * waveLength + offset, range + i * waveLength + offset,
+            0, Math.PI*2,
+            false,
+            Math.PI / 2      
+        );
+        const points = curve.getPoints(50);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineDashedMaterial({
+            color: 0xff00ff,
+            scale: 1,
+            dashSize: 0.5,
+            gapSize: 0.25,
+            clippingPlanes: clips,
+        });
+        const circle = new THREE.Line(geometry, material);
+        circle.rotateX(Math.PI / 2);
+        circle.position.y = 1;
+        circle.computeLineDistances();
+        groupDHelper.add(circle);
+    };
+};
 </script>
 
 <style scoped>
