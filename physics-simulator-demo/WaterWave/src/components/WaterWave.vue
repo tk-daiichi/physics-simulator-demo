@@ -13,9 +13,11 @@ import { isMeshObject, isLineObject } from "@/tools/isType"
 
 const container = ref<HTMLElement>();
 const scene = new THREE.Scene();
-const groupWave = new THREE.Group();
+const groupWaveA = new THREE.Group();
+const groupWaveB = new THREE.Group();
 const groupHelper = new THREE.Group();
-const origin = {x: 0, y: 0, z: 0};
+const originA = {x: -5, y: 0, z: 0};
+const originB = {x: 5, y: 0, z:0};
 
 const aspect = window.innerWidth / window.innerHeight;
 const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
@@ -27,19 +29,21 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 
 const isStop = ref<boolean>(false);
 const showHelper = ref<boolean>(false);
+const showBwave = ref<boolean>(true);
 
 onMounted(() => {
     init();
 });
 
 function init() {
-    scene.add(groupWave);
+    scene.add(groupWaveA);
+    scene.add(groupWaveB);
     scene.add(groupHelper);
 
     camera.position.set(0,20,-1);
     scene.add(camera);
 
-    light.position.set(5, 0, 5);
+    light.position.set(2, 1, 2);
     scene.add(light);
     scene.add(ambientLight);
 
@@ -49,9 +53,9 @@ function init() {
     renderer.localClippingEnabled = true;
     container.value?.appendChild(renderer.domElement);
     
-    container.value?.addEventListener("click", () => {
-        isStop.value = !isStop.value;
-    });
+    // container.value?.addEventListener("click", () => {
+    //     isStop.value = !isStop.value;
+    // });
     window.addEventListener("resize", () => {
         const {innerWidth, innerHeight} = window;
         camera.aspect = innerWidth / innerHeight;
@@ -60,10 +64,12 @@ function init() {
         renderer.setPixelRatio(innerWidth/innerHeight);
     });
 
-    waveAnim();    
+    waveAnim();
+    waveAnimB();
     waveHelper();
     
     animate(waveAnim);
+    animate(waveAnimB);
     animate(waveHelper);
 };
 
@@ -84,7 +90,7 @@ const props = {
     waveSize: 15,
     amplitude: 0.5,
     waveLengthParam: 1.5,
-    interval: 0.01,
+    interval: 0.005,
 };
 const control = {
     stop: function(){isStop.value = !isStop.value},
@@ -94,6 +100,9 @@ const control = {
     reset: function(){
         phase.value = 0;
     },
+    showB: function(){
+        showBwave.value = !showBwave.value
+    }
 };
 const cameraPos = {
     俯瞰: function(){camera.position.set(0, 10, 0)},
@@ -103,12 +112,13 @@ function initGui() {
     const gui = new GUI({container: container.value, width: 320});
     gui.add(props, "amplitude", 0.2, 1, 0.01).name("振幅");
     gui.add(props, "waveLengthParam", 1, 3, 0.5).name("波長係数");
-    gui.add(props, "interval", 0.005, 0.02, 0.005).name("周期");
+    gui.add(props, "interval", 0.002, 0.01, 0.002).name("周期");
     gui.add(cameraPos, "俯瞰");
     gui.add(cameraPos, "波面");
     gui.add(control, "stop").name("再生/停止");
     gui.add(control, "helper").name("波面表示切替");
     gui.add(control, "reset").name("リセット");
+    gui.add(control, "showB").name("波源追加/削除");
 };
 initGui();
 
@@ -121,12 +131,12 @@ const clips = [clipX1, clipX2, clipZ1, clipZ2] ;
 
 function waveAnim() {
     const waveLength = 2 * Math.PI / props.waveLengthParam;    
-    if(groupWave.children[0] && isMeshObject(groupWave.children)){
-        const materials = groupWave.children[0].material as THREE.Material;
-        const geometries = groupWave.children[0].geometry as THREE.BufferGeometry;
+    if(groupWaveA.children[0] && isMeshObject(groupWaveA.children)){
+        const materials = groupWaveA.children[0].material as THREE.Material;
+        const geometries = groupWaveA.children[0].geometry as THREE.BufferGeometry;
         materials.dispose();
         geometries.dispose();
-        groupWave.clear();
+        groupWaveA.clear();
     };
     if(isStop.value == false){
         phase.value += waveLength * props.interval;
@@ -139,21 +149,70 @@ function waveAnim() {
         clippingPlanes: clips,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    groupWave.add(mesh);    
+    groupWaveA.add(mesh);    
+};
+function waveAnimB() {
+    const waveLength = 2 * Math.PI / props.waveLengthParam;    
+    if(groupWaveB.children[0] && isMeshObject(groupWaveB.children)){
+        const materials = groupWaveB.children[0].material as THREE.Material;
+        const geometries = groupWaveB.children[0].geometry as THREE.BufferGeometry;
+        materials.dispose();
+        geometries.dispose();
+        groupWaveB.clear();
+    };
+    if(isStop.value == false){
+        phase.value += waveLength * props.interval;
+    };
+
+    if(showBwave.value == true){
+        const geometry = new ParametricGeometry(paramFuncB, 100, 100);
+        const material = new THREE.MeshLambertMaterial({
+            color: 0xaaffff,
+            side: THREE.DoubleSide,
+            clippingPlanes: clips,        
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        groupWaveB.add(mesh);   
+    }
 };
 
 function paramFunc(u: number, v: number, vec: THREE.Vector3) {
     u *= Math.PI * props.waveSize;
     v *= props.waveSize;
 
-    let x = Math.cos(u) * v + origin.x;
-    let z = Math.sin(u) * v + origin.z;
+    let distance = v ** 2 + originA.x ** 2 + 2 * v * originA.x * Math.cos(u);
+    let waveB = Math.cos(Math.sqrt(distance) * props.waveLengthParam - Math.PI * phase.value) * props.amplitude;
+
+    let x = Math.cos(u) * v - originA.x;
+    let z = Math.sin(u) * v - originA.z;
+
     let y;
-    if (phase.value * Math.PI / props.waveLengthParam < v){
+    if (v > phase.value * Math.PI / props.waveLengthParam){
+        y = 0
+    } else if (showBwave.value == true) {
+        y = Math.cos(v * props.waveLengthParam - Math.PI * phase.value) * props.amplitude + waveB;
+    } else {
+        y = Math.cos(v * props.waveLengthParam - Math.PI * phase.value) * props.amplitude
+    }
+  
+    vec.set(x,y,z);
+    return vec;
+};
+function paramFuncB(u: number, v: number, vec: THREE.Vector3) {
+    u *= Math.PI * props.waveSize;
+    v *= props.waveSize;
+
+    let distance = v ** 2 + originB.x ** 2 + 2 * v * originB.x * Math.cos(u);
+    let waveA = Math.cos(Math.sqrt(distance) * props.waveLengthParam - Math.PI * phase.value) * props.amplitude;
+
+    let x = Math.cos(u) * v - originB.x;
+    let z = Math.sin(u) * v - originB.z;
+    let y;
+    if (v > phase.value * Math.PI / props.waveLengthParam){
         y = 0
     } else {
-        y = Math.cos(v * props.waveLengthParam - Math.PI * phase.value) * props.amplitude;
-    }
+        y = Math.cos(v * props.waveLengthParam - Math.PI * (phase.value - 0)) * props.amplitude + waveA;
+    } 
   
     vec.set(x,y,z);
     return vec;
@@ -175,7 +234,7 @@ function waveHelper() {
     if(showHelper.value == true) {
         for (let i = 0; i <= numOfMount; i++){
             const curve = new THREE.EllipseCurve(
-                origin.x, origin.z,
+                originA.x, originA.z,
                 range + i * waveLength/2, range + i * waveLength/2,
                 0, Math.PI * 2,
                 false,
